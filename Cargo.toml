@@ -1,0 +1,10 @@
+[workspace]
+
+resolver = "2"
+
+members = [
+    "cascade",
+    "csc_engine",
+    "csc_ui",
+    "csc_core",
+]
