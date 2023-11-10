@@ -1,3 +1,1 @@
-pub mod mainwindow;
-
-mod nodegraph;
+pub mod nodegraph;
