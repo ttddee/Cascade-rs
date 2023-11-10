@@ -2,7 +2,7 @@
 #![allow(clippy::eq_op)]
 
 use csc_engine::pipeline::RenderPipeline;
-use csc_ui::nodegraph:: { MyGraphState, AllMyNodeTemplates};
+use csc_ui::node_graph:: { MyGraphState, AllMyNodeTemplates};
 
 use egui::{epaint::Shadow, style::Margin, vec2, Align, Align2, Color32, Frame, Rounding, Window, SidePanel, DragValue};
 use egui_winit_vulkano::{Gui, GuiConfig};
@@ -31,7 +31,7 @@ pub fn main() {
         ci.image_format = vulkano::format::Format::B8G8R8A8_UNORM;
         ci.min_image_count = ci.min_image_count.max(2);
     });
-    // Create our gui pipeline
+    // Create the rendering pipeline
     let mut gui_pipeline = RenderPipeline::new(
         context.graphics_queue().clone(),
         windows.get_primary_renderer_mut().unwrap().swapchain_format(),

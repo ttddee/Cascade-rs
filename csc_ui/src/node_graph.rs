@@ -33,6 +33,7 @@ pub enum MyNodeTemplate {
     AddVector,
     SubtractVector,
     VectorTimesScalar,
+    Blur,
 }
 
 // A trait for the node kinds, which tells the library how to build new nodes
@@ -53,6 +54,7 @@ impl NodeTemplateTrait for MyNodeTemplate {
             MyNodeTemplate::AddVector => "Vector add",
             MyNodeTemplate::SubtractVector => "Vector subtract",
             MyNodeTemplate::VectorTimesScalar => "Vector times scalar",
+            MyNodeTemplate::Blur => "Blur",
         })
     }
 
@@ -66,6 +68,7 @@ impl NodeTemplateTrait for MyNodeTemplate {
             | MyNodeTemplate::AddVector
             | MyNodeTemplate::SubtractVector => vec!["Vector"],
             MyNodeTemplate::VectorTimesScalar => vec!["Vector", "Scalar"],
+            MyNodeTemplate::Blur => vec!["Ops"],
         }
     }
 
@@ -171,6 +174,11 @@ impl NodeTemplateTrait for MyNodeTemplate {
                 input_scalar(graph, "value");
                 output_scalar(graph, "out");
             }
+            MyNodeTemplate::Blur => {
+                input_scalar(graph, "RGB");
+                input_scalar(graph, "Alpha");
+                output_vector(graph, "Out");
+            }
         }
     }
 }
@@ -185,6 +193,7 @@ impl NodeTemplateTrait for MyNodeTemplate {
 pub enum MyDataType {
     Scalar,
     Vec2,
+    RGB,
 }
 
 // A trait for the data types, to tell the library how to display them
@@ -193,6 +202,7 @@ impl DataTypeTrait<MyGraphState> for MyDataType {
         match self {
             MyDataType::Scalar => egui::Color32::from_rgb(38, 109, 211),
             MyDataType::Vec2 => egui::Color32::from_rgb(238, 207, 109),
+            MyDataType::RGB => egui::Color32::from_rgb(255, 0, 0),
         }
     }
 
@@ -200,6 +210,7 @@ impl DataTypeTrait<MyGraphState> for MyDataType {
         match self {
             MyDataType::Scalar => Cow::Borrowed("scalar"),
             MyDataType::Vec2 => Cow::Borrowed("2d vector"),
+            MyDataType::RGB => Cow::Borrowed("RGB"),
         }
     }
 }
@@ -379,6 +390,7 @@ impl NodeTemplateIter for AllMyNodeTemplates {
             MyNodeTemplate::AddVector,
             MyNodeTemplate::SubtractVector,
             MyNodeTemplate::VectorTimesScalar,
+            MyNodeTemplate::Blur,
         ]
     }
 }
