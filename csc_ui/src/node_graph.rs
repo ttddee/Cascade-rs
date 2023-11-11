@@ -115,6 +115,26 @@ impl NodeTemplateTrait for MyNodeTemplate {
                 true,
             );
         };
+        let input_rgb = |graph: &mut MyGraph, name: &str| {
+            graph.add_input_param(
+                node_id,
+                name.to_string(),
+                MyDataType::RGB,
+                MyValueType::RGB { value: 0.0 },
+                InputParamKind::ConnectionOnly,
+                true,
+            );
+        };
+        let input_alpha = |graph: &mut MyGraph, name: &str| {
+            graph.add_input_param(
+                node_id,
+                name.to_string(),
+                MyDataType::Alpha,
+                MyValueType::Alpha { value: 0.0 },
+                InputParamKind::ConnectionOnly,
+                true,
+            );
+        };
 
         let output_scalar = |graph: &mut MyGraph, name: &str| {
             graph.add_output_param(node_id, name.to_string(), MyDataType::Scalar);
@@ -175,9 +195,8 @@ impl NodeTemplateTrait for MyNodeTemplate {
                 output_scalar(graph, "out");
             }
             MyNodeTemplate::Blur => {
-                input_scalar(graph, "RGB");
-                input_scalar(graph, "Alpha");
-                output_vector(graph, "Out");
+                input_rgb(graph, "RGB");
+                input_alpha(graph, "Alpha");
             }
         }
     }
@@ -194,6 +213,7 @@ pub enum MyDataType {
     Scalar,
     Vec2,
     RGB,
+    Alpha,
 }
 
 // A trait for the data types, to tell the library how to display them
@@ -203,6 +223,7 @@ impl DataTypeTrait<MyGraphState> for MyDataType {
             MyDataType::Scalar => egui::Color32::from_rgb(38, 109, 211),
             MyDataType::Vec2 => egui::Color32::from_rgb(238, 207, 109),
             MyDataType::RGB => egui::Color32::from_rgb(255, 0, 0),
+            MyDataType::Alpha => egui::Color32::from_rgb(0, 0, 255),
         }
     }
 
@@ -211,6 +232,7 @@ impl DataTypeTrait<MyGraphState> for MyDataType {
             MyDataType::Scalar => Cow::Borrowed("scalar"),
             MyDataType::Vec2 => Cow::Borrowed("2d vector"),
             MyDataType::RGB => Cow::Borrowed("RGB"),
+            MyDataType::Alpha => Cow::Borrowed("Alpha"),
         }
     }
 }
@@ -292,6 +314,8 @@ impl NodeDataTrait for MyNodeData {
 pub enum MyValueType {
     Vec2 { value: egui::Vec2 },
     Scalar { value: f32 },
+    RGB { value: f32 },
+    Alpha { value: f32 },
 }
 
 impl Default for MyValueType {
@@ -350,6 +374,16 @@ impl WidgetValueTrait for MyValueType {
                 ui.horizontal(|ui| {
                     ui.label(param_name);
                     ui.add(DragValue::new(value));
+                });
+            }
+            MyValueType::RGB { value } => {
+                ui.horizontal(|ui| {
+                    ui.label(param_name);
+                });
+            }
+            MyValueType::Alpha { value } => {
+                ui.horizontal(|ui| {
+                    ui.label(param_name);
                 });
             }
         }
