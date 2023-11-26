@@ -1,15 +1,50 @@
 use std::vec;
 
+pub enum NodeCategory {
+    IO,
+    Filters,
+}
+
+pub trait CategoryTrait {
+    fn name(&self) -> String;
+}
+
+impl CategoryTrait for NodeCategory {
+    fn name(&self) -> String {
+        match self {
+            NodeCategory::IO => String::from("IO"),
+            NodeCategory::Filters => String::from("Filters"),
+            _ => panic!("Node category does not exist."),
+        } 
+    }
+}
+
+#[derive(Clone, Copy)]
 pub enum NodeType {
     Blur,
     Read,
     Write,
 }
 
-pub enum NodeCategory {
-    IO,
-    Filters,
+pub trait NodeTypeTrait {
+    fn name(&self) -> String;
 }
+
+impl NodeTypeTrait for NodeType {
+    fn name(&self) -> String {
+        match self {
+            NodeType::Blur => String::from("Blur"),
+            NodeType::Read => String::from("Read"),
+            NodeType::Write => String::from("Write"),
+            _ => panic!("Node type does not exist."),
+        } 
+    }
+}
+
+
+
+//--------------------------------------------
+
 
 pub enum ImageType {
     RGB,

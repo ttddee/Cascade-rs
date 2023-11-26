@@ -5,6 +5,8 @@ use egui::DragValue;
 use egui_node_graph::{ NodeId, NodeTemplateIter, NodeTemplateTrait, Graph, 
     InputParamKind, NodeDataTrait, NodeResponse, UserResponseTrait, WidgetValueTrait, DataTypeTrait };
 
+use csc_core::node_model::{ NodeType, NodeTypeTrait };
+
 type MyGraph = Graph<MyNodeData, MyDataType, MyValueType>;
 
 // ------------------------------- MyGraphState
@@ -38,7 +40,7 @@ pub enum MyNodeTemplate {
 
 // A trait for the node kinds, which tells the library how to build new nodes
 // from the templates in the node finder
-impl NodeTemplateTrait for MyNodeTemplate {
+impl NodeTemplateTrait for MyNodeTemplate{
     type NodeData = MyNodeData;
     type DataType = MyDataType;
     type ValueType = MyValueType;
@@ -218,7 +220,7 @@ pub enum MyDataType {
 
 // A trait for the data types, to tell the library how to display them
 impl DataTypeTrait<MyGraphState> for MyDataType {
-    fn data_type_color(&self, _user_state: &mut MyGraphState) -> egui::Color32 {
+    fn data_type_color(&self, _user_state: &mut MyGraphState) -> ecolor::Color32 {
         match self {
             MyDataType::Scalar => egui::Color32::from_rgb(38, 109, 211),
             MyDataType::Vec2 => egui::Color32::from_rgb(238, 207, 109),
