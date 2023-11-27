@@ -287,8 +287,6 @@ impl NodeDataTrait for MyNodeData {
 #[derive(Copy, Clone, Debug)]
 #[cfg_attr(feature = "persistence", derive(serde::Serialize, serde::Deserialize))]
 pub enum MyValueType {
-    Vec2 { value: egui::Vec2 },
-    Scalar { value: f32 },
     RGB { value: f32 },
     Alpha { value: f32 },
 }
@@ -297,28 +295,28 @@ impl Default for MyValueType {
     fn default() -> Self {
         // NOTE: This is just a dummy `Default` implementation. The library
         // requires it to circumvent some internal borrow checker issues.
-        Self::Scalar { value: 0.0 }
+        Self::RGB { value: 0.0 }
     }
 }
 
 impl MyValueType {
-    /// Tries to downcast this value type to a vector
-    pub fn try_to_vec2(self) -> anyhow::Result<egui::Vec2> {
-        if let MyValueType::Vec2 { value } = self {
-            Ok(value)
-        } else {
-            anyhow::bail!("Invalid cast from {:?} to vec2", self)
-        }
-    }
+    // Tries to downcast this value type to a vector
+    // pub fn try_to_vec2(self) -> anyhow::Result<egui::Vec2> {
+    //     if let MyValueType::Vec2 { value } = self {
+    //         Ok(value)
+    //     } else {
+    //         anyhow::bail!("Invalid cast from {:?} to vec2", self)
+    //     }
+    // }
 
-    /// Tries to downcast this value type to a scalar
-    pub fn try_to_scalar(self) -> anyhow::Result<f32> {
-        if let MyValueType::Scalar { value } = self {
-            Ok(value)
-        } else {
-            anyhow::bail!("Invalid cast from {:?} to scalar", self)
-        }
-    }
+    // /// Tries to downcast this value type to a scalar
+    // pub fn try_to_scalar(self) -> anyhow::Result<f32> {
+    //     if let MyValueType::Scalar { value } = self {
+    //         Ok(value)
+    //     } else {
+    //         anyhow::bail!("Invalid cast from {:?} to scalar", self)
+    //     }
+    // }
 }
 
 impl WidgetValueTrait for MyValueType {
@@ -336,21 +334,6 @@ impl WidgetValueTrait for MyValueType {
         // This trait is used to tell the library which UI to display for the
         // inline parameter widgets.
         match self {
-            MyValueType::Vec2 { value } => {
-                ui.label(param_name);
-                ui.horizontal(|ui| {
-                    ui.label("x");
-                    ui.add(DragValue::new(&mut value.x));
-                    ui.label("y");
-                    ui.add(DragValue::new(&mut value.y));
-                });
-            }
-            MyValueType::Scalar { value } => {
-                ui.horizontal(|ui| {
-                    ui.label(param_name);
-                    ui.add(DragValue::new(value));
-                });
-            }
             MyValueType::RGB { value } => {
                 ui.horizontal(|ui| {
                     ui.label(param_name);
