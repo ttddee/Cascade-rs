@@ -5,7 +5,7 @@ use csc_engine::pipeline::RenderPipeline;
 use csc_core::node_model::{ AllMyNodeTemplates };
 use csc_core::graph_model::{ MyGraphState };
 
-use egui::{epaint::Shadow, style::Margin, vec2, Align, Align2, Color32, Frame, Rounding, Window, SidePanel, DragValue};
+use egui::{epaint::Shadow, style::Margin, vec2, Align, Align2, Color32, Frame, Rounding, Window, SidePanel };
 use egui_winit_vulkano::{Gui, GuiConfig};
 use vulkano_util::{
     context::{VulkanoConfig, VulkanoContext},
