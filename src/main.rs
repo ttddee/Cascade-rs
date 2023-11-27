@@ -2,7 +2,8 @@
 #![allow(clippy::eq_op)]
 
 use csc_engine::pipeline::RenderPipeline;
-use csc_ui::node_graph:: { MyGraphState, AllMyNodeTemplates};
+use csc_core::node_model::{ AllMyNodeTemplates };
+use csc_core::graph_model::{ MyGraphState };
 
 use egui::{epaint::Shadow, style::Margin, vec2, Align, Align2, Color32, Frame, Rounding, Window, SidePanel, DragValue};
 use egui_winit_vulkano::{Gui, GuiConfig};
@@ -124,7 +125,7 @@ pub fn main() {
                         //    ui.label("Hello World!");
                            
                         //  });
-                        let graph_response = egui::TopBottomPanel::bottom("nodegraph_panel").min_height(200.).resizable(true)
+                        let graph_response = egui::TopBottomPanel::bottom("nodegraph_panel").min_height(400.).resizable(true)
                             .show(&ctx, |ui| {
                                 
                                 graph_editor_state.draw_graph_editor(

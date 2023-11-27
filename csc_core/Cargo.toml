@@ -4,3 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+egui = "0.23.0"
+ecolor = "0.23.0"
+egui_node_graph = { git = "https://github.com/ttddee/egui_node_graph", rev ="b8a68830" }
+anyhow = "1.0"
