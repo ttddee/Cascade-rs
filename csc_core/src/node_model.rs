@@ -7,14 +7,13 @@ use egui_node_graph::{ NodeId, NodeTemplateIter, NodeTemplateTrait, Graph,
 
 use crate::graph_model::MyGraphState;
 
+use crate::node_property::NodeProperty;
+
 type MyGraph = Graph<MyNodeData, ImageType, MyValueType>;
 
 //--------------------------------------------
 
-pub enum NodeProperty {
-    Float (Vec<f32>),
-    Int (Vec<i32>),
-}
+
 
 pub struct NodeModel {
     node_type: NodeType,
