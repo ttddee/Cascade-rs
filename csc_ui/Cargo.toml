@@ -10,7 +10,8 @@ ecolor = "0.23.0"
 anyhow = "1.0"
 serde = { version = "1.0", optional = true }
 
-egui_node_graph = { git = "https://github.com/ttddee/egui_node_graph", rev ="b8a68830" }
+#egui_node_graph = { git = "https://github.com/ttddee/egui_node_graph", rev ="b8a68830" }
+egui_node_graph = { path = "../../egui_node_graph/egui_node_graph" }
 
 [features]
 #default = []

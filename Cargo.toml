@@ -21,7 +21,8 @@ ahash = "0.8.3"
 egui = "0.23"
 egui-winit = "0.23"
 winit = "0.28.2"
-egui_node_graph = { git = "https://github.com/ttddee/egui_node_graph", rev ="b8a68830" }
+#egui_node_graph = { git = "https://github.com/ttddee/egui_node_graph", rev ="b8a68830" }
+egui_node_graph = { path = "../egui_node_graph/egui_node_graph" }
 anyhow = "1.0"
 vulkano-util = "0.34"
 egui_winit_vulkano = { git = "https://github.com/hakolao/egui_winit_vulkano" }

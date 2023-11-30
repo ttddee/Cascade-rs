@@ -9,5 +9,5 @@ use egui_node_graph::{ NodeId, NodeTemplateIter, NodeTemplateTrait, Graph,
 #[derive(Default)]
 #[cfg_attr(feature = "persistence", derive(serde::Serialize, serde::Deserialize))]
 pub struct MyGraphState {
-    pub active_node: Option<NodeId>,
+    //pub active_node: Option<NodeId>,
 }

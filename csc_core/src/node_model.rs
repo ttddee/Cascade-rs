@@ -73,7 +73,7 @@ impl DataTypeTrait<MyGraphState> for ImageType {
 
 // ------------------------------- NodeType
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "persistence", derive(serde::Serialize, serde::Deserialize))]
 pub enum NodeType {
     Blur,
@@ -214,7 +214,7 @@ impl NodeTemplateTrait for NodeType{
 #[cfg_attr(feature = "persistence", derive(serde::Serialize, serde::Deserialize))]
 pub struct MyNodeData {
     //template: MyNodeTemplate,
-    node_type: NodeType,
+    pub node_type: NodeType,
 }
 impl NodeDataTrait for MyNodeData {
     type Response = MyResponse;
@@ -242,28 +242,28 @@ impl NodeDataTrait for MyNodeData {
         // the value stored in the global user state, and draw different button
         // UIs based on that.
 
-        let mut responses = vec![];
-        let is_active = user_state
-            .active_node
-            .map(|id| id == node_id)
-            .unwrap_or(false);
+         let mut responses = vec![];
+        // let is_active = user_state
+        //     .active_node
+        //     .map(|id| id == node_id)
+        //     .unwrap_or(false);
 
         // Pressing the button will emit a custom user response to either set,
         // or clear the active node. These responses do nothing by themselves,
         // the library only makes the responses available to you after the graph
         // has been drawn. See below at the update method for an example.
-        if !is_active {
-            if ui.button("👁 Set active").clicked() {
-                responses.push(NodeResponse::User(MyResponse::SetActiveNode(node_id)));
-            }
-        } else {
-            let button =
-                egui::Button::new(egui::RichText::new("👁 Active").color(egui::Color32::BLACK))
-                    .fill(egui::Color32::GOLD);
-            if ui.add(button).clicked() {
-                responses.push(NodeResponse::User(MyResponse::ClearActiveNode));
-            }
-        }
+        // if !is_active {
+        //     if ui.button("👁 Set active").clicked() {
+        //         responses.push(NodeResponse::User(MyResponse::SetActiveNode(node_id)));
+        //     }
+        // } else {
+        //     let button =
+        //         egui::Button::new(egui::RichText::new("👁 Active").color(egui::Color32::BLACK))
+        //             .fill(egui::Color32::GOLD);
+        //     if ui.add(button).clicked() {
+        //         responses.push(NodeResponse::User(MyResponse::ClearActiveNode));
+        //     }
+        // }
 
         responses
     }
@@ -332,8 +332,8 @@ impl WidgetValueTrait for MyValueType {
 /// mechanism allows creating additional side effects from user code.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MyResponse {
-    SetActiveNode(NodeId),
-    ClearActiveNode,
+    //SetActiveNode(NodeId),
+    //ClearActiveNode,
 }
 
 impl UserResponseTrait for MyResponse {}

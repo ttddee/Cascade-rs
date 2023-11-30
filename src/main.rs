@@ -1,8 +1,10 @@
 
 #![allow(clippy::eq_op)]
 
+use std::collections::HashMap;
+
 use csc_engine::pipeline::RenderPipeline;
-use csc_core::node_model::{ AllMyNodeTemplates };
+use csc_core::node_model::{ AllMyNodeTemplates, MyResponse, NodeType, MyNodeData, ImageType, MyValueType };
 use csc_core::graph_model::{ MyGraphState };
 
 use egui::{epaint::Shadow, style::Margin, vec2, Align, Align2, Color32, Frame, Rounding, Window, SidePanel };
@@ -15,7 +17,7 @@ use winit::{
     event::{Event, WindowEvent, MouseScrollDelta},
     event_loop::{ControlFlow, EventLoop},
 };
-use egui_node_graph::GraphEditorState;
+use egui_node_graph::{ GraphEditorState, NodeResponse };
 
 pub fn main() {
     // Winit event loop
@@ -48,7 +50,7 @@ pub fn main() {
         GuiConfig::default(),
     );
 
-    let mut graph_editor_state = GraphEditorState::new(0.0);
+    let mut graph_editor_state: GraphEditorState<MyNodeData, ImageType, MyValueType, NodeType, MyGraphState> = GraphEditorState::new(0.0);
     let mut user_state = MyGraphState::default();
 
     // Create gui state (pass anything your state requires)
@@ -67,6 +69,21 @@ pub fn main() {
                     }
                     WindowEvent::CloseRequested => {
                         *control_flow = ControlFlow::Exit;
+                    }
+                    WindowEvent::KeyboardInput { device_id: _, input: _, is_synthetic: false } => {
+                        // if state == ElementState::Pressed && !event.repeat {
+                        //     match event.key_without_modifiers().as_ref() {
+                        //         Key::Character("1") => {
+                        //             if modifiers.shift_key() {
+                        //                 println!("Shift + 1 | logical_key: {:?}", event.logical_key);
+                        //             } else {
+                        //                 println!("1");
+                        //             }
+                        //         }
+                        //         _ => (),
+                        //     }
+                        // }
+
                     }
                     // WindowEvent::MouseInput { device_id: _, state: _, button, modifiers: _} => {
                     //     //println!("Click on {:?} button", button);
@@ -119,12 +136,23 @@ pub fn main() {
                             });
                         });
                         SidePanel::right("properties_panel").default_width(300.).show(&ctx, |ui| {
-                            ui.label("Hello World!");
+               
+                            if let Some(node_id) = graph_editor_state.active_node {
+                                ui.label("active node");
+                                
+                                let active_node = &graph_editor_state.graph.nodes[node_id];
+                                if active_node.user_data.node_type == NodeType::Blur {
+                                    ui.label("blur");
+                                }
+                                
+                            }
+                            else {
+                                
+                            }
+
                          });
-                        // egui::TopBottomPanel::bottom("nodegraph_panel").min_height(200.).resizable(true).show(&ctx, |ui| {
-                        //    ui.label("Hello World!");
-                           
-                        //  });
+
+                        // -------- Node Graph
                         let graph_response = egui::TopBottomPanel::bottom("nodegraph_panel").min_height(400.).resizable(true)
                             .show(&ctx, |ui| {
                                 
@@ -136,6 +164,36 @@ pub fn main() {
                                 )
                             })
                             .inner;
+                        for node_response in graph_response.node_responses {
+                            // Here, we ignore all other graph events. But you may find
+                            // some use for them. For example, by playing a sound when a new
+                            // connection is created
+                            // if let NodeResponse::User(user_event) = node_response {
+                            //     match user_event {
+                            //         MyResponse::SetActiveNode(node) => user_state.active_node = Some(node),
+                            //         MyResponse::ClearActiveNode => user_state.active_node = None,
+                            //     }
+                            // }
+                            //if let NodeResponse::User()
+                        }
+                
+                        // if let Some(node) = user_state.active_node {
+                        //     if graph_editor_state.graph.nodes.contains_key(node) {
+                        //         // let text = match evaluate_node(&graph_editor_state.graph, node, &mut HashMap::new()) {
+                        //         //     Ok(value) => format!("The result is: {:?}", value),
+                        //         //     Err(err) => format!("Execution error: {}", err),
+                        //         // };
+                        //         // ctx.debug_painter().text(
+                        //         //     egui::pos2(10.0, 35.0),
+                        //         //     egui::Align2::LEFT_TOP,
+                        //         //     text,
+                        //         //     TextStyle::Button.resolve(&ctx.style()),
+                        //         //     egui::Color32::WHITE,
+                        //         // );
+                        //     } else {
+                        //         user_state.active_node = None;
+                        //     }
+                        // }
                 });
                 // Render
                 // Acquire swapchain future
