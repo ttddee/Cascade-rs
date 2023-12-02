@@ -145,7 +145,15 @@ impl NodeTemplateTrait for NodeType{
     }
 
     fn user_data(&self, _user_state: &mut Self::UserState) -> Self::NodeData {
-        MyNodeData { node_type: *self }
+        let properties: Vec<NodeProperty> = match self {
+            NodeType::Blur => vec!{ NodeProperty::new_float(1.0, 1.0, 1.0, 1.0) },
+            NodeType::Read  => vec!{ NodeProperty::new_float(1.0, 1.0, 1.0, 1.0) },
+            NodeType::Write => vec!{ NodeProperty::new_float(1.0, 1.0, 1.0, 1.0) },
+        };
+        MyNodeData { 
+            node_type: *self, node_properties: properties
+            
+        }
     }
 
     fn build_node(
@@ -213,8 +221,8 @@ impl NodeTemplateTrait for NodeType{
 /// example, the node data stores the template (i.e. the "type") of the node.
 #[cfg_attr(feature = "persistence", derive(serde::Serialize, serde::Deserialize))]
 pub struct MyNodeData {
-    //template: MyNodeTemplate,
     pub node_type: NodeType,
+    pub node_properties: Vec<NodeProperty>,
 }
 impl NodeDataTrait for MyNodeData {
     type Response = MyResponse;

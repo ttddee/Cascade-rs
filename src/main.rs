@@ -3,6 +3,7 @@
 
 use std::collections::HashMap;
 
+use csc_core::node_property::{NodeProperty, PropertyData};
 use csc_engine::pipeline::RenderPipeline;
 use csc_core::node_model::{ AllMyNodeTemplates, MyResponse, NodeType, MyNodeData, ImageType, MyValueType };
 use csc_core::graph_model::{ MyGraphState };
@@ -143,13 +144,12 @@ pub fn main() {
                                 let active_node = &graph_editor_state.graph.nodes[node_id];
                                 if active_node.user_data.node_type == NodeType::Blur {
                                     ui.label("blur");
+                                    
+                                    if let NodeProperty::Float(values) = &active_node.user_data.node_properties[0] {
+                                        ui.label(values.value().to_string());
+                                    }
                                 }
-                                
                             }
-                            else {
-                                
-                            }
-
                          });
 
                         // -------- Node Graph
