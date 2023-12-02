@@ -83,7 +83,7 @@ pub enum NodeType {
 
 impl NodeType {
     
-    fn name(&self) -> Cow<'_, str> {
+    pub fn name(&self) -> Cow<'_, str> {
         match self {
             NodeType::Blur => Cow::Borrowed("Blur"),
             NodeType::Read => Cow::Borrowed("Read"),
@@ -146,9 +146,9 @@ impl NodeTemplateTrait for NodeType{
 
     fn user_data(&self, _user_state: &mut Self::UserState) -> Self::NodeData {
         let properties: Vec<NodeProperty> = match self {
-            NodeType::Blur => vec!{ NodeProperty::new_float(1.0, 1.0, 1.0, 1.0) },
-            NodeType::Read  => vec!{ NodeProperty::new_float(1.0, 1.0, 1.0, 1.0) },
-            NodeType::Write => vec!{ NodeProperty::new_float(1.0, 1.0, 1.0, 1.0) },
+            NodeType::Blur => vec!{ NodeProperty::new_float("Intensity".to_string(), 1.0, 10.0, 1.0, 1.0) },
+            NodeType::Read  => vec!{ NodeProperty::new_float("Intensity".to_string(), 1.0, 10.0, 1.0, 1.0) },
+            NodeType::Write => vec!{ NodeProperty::new_float("Intensity".to_string(), 1.0, 10.0, 1.0, 1.0) },
         };
         MyNodeData { 
             node_type: *self, node_properties: properties

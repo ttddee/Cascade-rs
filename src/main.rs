@@ -1,14 +1,5 @@
-
 #![allow(clippy::eq_op)]
 
-use std::collections::HashMap;
-
-use csc_core::node_property::{NodeProperty, PropertyData};
-use csc_engine::pipeline::RenderPipeline;
-use csc_core::node_model::{ AllMyNodeTemplates, MyResponse, NodeType, MyNodeData, ImageType, MyValueType };
-use csc_core::graph_model::{ MyGraphState };
-
-use egui::{epaint::Shadow, style::Margin, vec2, Align, Align2, Color32, Frame, Rounding, Window, SidePanel };
 use egui_winit_vulkano::{Gui, GuiConfig};
 use vulkano_util::{
     context::{VulkanoConfig, VulkanoContext},
@@ -19,6 +10,10 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
 };
 use egui_node_graph::{ GraphEditorState, NodeResponse };
+
+use csc_engine::pipeline::RenderPipeline;
+use csc_core::node_model::{ AllMyNodeTemplates, NodeType, MyNodeData, ImageType, MyValueType };
+use csc_core::graph_model::MyGraphState;
 
 pub fn main() {
     // Winit event loop
@@ -114,43 +109,13 @@ pub fn main() {
                 // Set immediate UI in redraw here
                 gui.immediate_ui(|gui| {
                     let ctx = gui.context();
-                    Window::new("Transparent Window")
-                        .anchor(Align2([Align::RIGHT, Align::TOP]), vec2(-545.0, 500.0))
-                        .resizable(false)
-                        .default_width(300.0)
-                        .frame(
-                            Frame::none()
-                                .fill(Color32::from_white_alpha(125))
-                                .shadow(Shadow {
-                                    extrusion: 8.0,
-                                    color: Color32::from_black_alpha(125),
-                                })
-                                .rounding(Rounding::same(5.0))
-                                .inner_margin(Margin::same(10.0)),
-                        )
-                        .show(&ctx, |ui| {
-                            ui.colored_label(Color32::BLACK, "Content :)");
-                        });
                         egui::TopBottomPanel::top("main_menu").show(&ctx, |ui| {
                             egui::menu::bar(ui, |ui| {
                                 egui::widgets::global_dark_light_mode_switch(ui);
                             });
                         });
-                        SidePanel::right("properties_panel").default_width(300.).show(&ctx, |ui| {
-               
-                            if let Some(node_id) = graph_editor_state.active_node {
-                                ui.label("active node");
-                                
-                                let active_node = &graph_editor_state.graph.nodes[node_id];
-                                if active_node.user_data.node_type == NodeType::Blur {
-                                    ui.label("blur");
-                                    
-                                    if let NodeProperty::Float(values) = &active_node.user_data.node_properties[0] {
-                                        ui.label(values.value().to_string());
-                                    }
-                                }
-                            }
-                         });
+                        csc_ui::properties_panel::build_properties_panel(&ctx, &mut graph_editor_state);
+
 
                         // -------- Node Graph
                         let graph_response = egui::TopBottomPanel::bottom("nodegraph_panel").min_height(400.).resizable(true)
