@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use egui_winit_vulkano::{Gui, GuiConfig};
+use egui_winit_vulkano::Gui;
 use vulkano::{
     buffer::{Buffer, BufferContents, BufferCreateInfo, BufferUsage, Subbuffer},
     command_buffer::{
@@ -61,9 +61,14 @@ impl RenderPipeline {
                 ..Default::default()
             },
             [
+                // Upper left triangle
                 MyVertex { position: [-1.0, -1.0], color: [1.0, 0.0, 0.0, 1.0] },
                 MyVertex { position: [-1.0, 1.0], color: [0.0, 1.0, 0.0, 1.0] },
-                MyVertex { position: [1.0 - (300. / 1280.), -1.0], color: [0.0, 0.0, 1.0, 1.0] }, // put vertices at edge of viewport
+                MyVertex { position: [1.0, -1.0], color: [0.0, 0.0, 1.0, 1.0] }, 
+                // Bottom right triangle
+                MyVertex { position: [-1.0, 1.0], color: [1.0, 0.0, 0.0, 1.0] },
+                MyVertex { position: [1.0, 1.0], color: [0.0, 1.0, 0.0, 1.0] },
+                MyVertex { position: [1.0, -1.0], color: [0.0, 0.0, 1.0, 1.0] }, 
             ],
         )
         .unwrap();
