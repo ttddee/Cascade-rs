@@ -6,7 +6,8 @@ use vulkano::{
     command_buffer::{
         allocator::{StandardCommandBufferAllocator, StandardCommandBufferAllocatorCreateInfo},
         AutoCommandBufferBuilder, CommandBufferInheritanceInfo, CommandBufferUsage,
-        CopyBufferToImageInfo, RenderPassBeginInfo, SubpassBeginInfo, SubpassContents, PrimaryCommandBufferAbstract,
+        CopyBufferToImageInfo, PrimaryCommandBufferAbstract, RenderPassBeginInfo, SubpassBeginInfo,
+        SubpassContents,
     },
     descriptor_set::{
         allocator::StandardDescriptorSetAllocator, PersistentDescriptorSet, WriteDescriptorSet,
@@ -35,15 +36,17 @@ use vulkano::{
     },
     render_pass::{Framebuffer, FramebufferCreateInfo, RenderPass, Subpass},
     sync::GpuFuture,
-    DeviceSize, 
+    DeviceSize,
 };
+
+use crate::shaders;
 
 pub struct RenderPipeline {
     queue: Arc<Queue>,
     render_pass: Arc<RenderPass>,
     pipeline: Arc<GraphicsPipeline>,
     subpass: Subpass,
-    vertex_buffer: Subbuffer<[MyVertex]>,
+    vertex_buffer: Subbuffer<[CsVertex]>,
     sampler: Arc<Sampler>,
     allocator: Arc<StandardMemoryAllocator>,
 }
@@ -70,25 +73,16 @@ impl RenderPipeline {
                 ..Default::default()
             },
             [
-                // // Upper left triangle
-                // MyVertex { position: [-1.0, -1.0], color: [1.0, 0.0, 0.0, 1.0] },
-                // MyVertex { position: [-1.0, 1.0], color: [0.0, 1.0, 0.0, 1.0] },
-                // MyVertex { position: [1.0, -1.0], color: [0.0, 0.0, 1.0, 1.0] },
-                // // Bottom right triangle
-                // MyVertex { position: [-1.0, 1.0], color: [1.0, 0.0, 0.0, 1.0] },
-                // MyVertex { position: [1.0, 1.0], color: [0.0, 1.0, 0.0, 1.0] },
-                // MyVertex { position: [1.0, -1.0], color: [0.0, 0.0, 1.0, 1.0] },
-                // Upper left triangle
-                MyVertex {
+                CsVertex {
                     position: [-1.0, -1.0],
                 },
-                MyVertex {
+                CsVertex {
                     position: [-1.0, 1.0],
                 },
-                MyVertex {
+                CsVertex {
                     position: [1.0, -1.0],
                 },
-                MyVertex {
+                CsVertex {
                     position: [1.0, 1.0],
                 },
             ],
@@ -129,7 +123,7 @@ impl RenderPipeline {
                 }
             },
             passes: [
-                { color: [color], depth_stencil: {}, input: [] }, // Draw what you want on this pass
+                { color: [color], depth_stencil: {}, input: [] }, // Render pass for the viewer
                 { color: [color], depth_stencil: {}, input: [] } // Gui render pass
             ]
         )
@@ -144,16 +138,16 @@ impl RenderPipeline {
         device: Arc<Device>,
         render_pass: Arc<RenderPass>,
     ) -> (Arc<GraphicsPipeline>, Subpass) {
-        let vs = vs::load(device.clone())
+        let vs = shaders::vs::load(device.clone())
             .expect("failed to create shader module")
             .entry_point("main")
             .unwrap();
-        let fs = fs::load(device.clone())
+        let fs = shaders::fs::load(device.clone())
             .expect("failed to create shader module")
             .entry_point("main")
             .unwrap();
 
-        let vertex_input_state = MyVertex::per_vertex()
+        let vertex_input_state = CsVertex::per_vertex()
             .definition(&vs.info().input_interface)
             .unwrap();
 
@@ -399,43 +393,7 @@ impl RenderPipeline {
 
 #[repr(C)]
 #[derive(BufferContents, Vertex)]
-struct MyVertex {
+struct CsVertex {
     #[format(R32G32_SFLOAT)]
     position: [f32; 2],
-}
-
-mod vs {
-    vulkano_shaders::shader! {
-        ty: "vertex",
-        src: r"
-            #version 450
-
-            layout(location = 0) in vec2 position;
-            layout(location = 0) out vec2 tex_coords;
-
-            void main() {
-                gl_Position = vec4(position, 0.0, 1.0);
-                tex_coords = position + vec2(0.5);
-            }
-        ",
-    }
-}
-
-mod fs {
-    vulkano_shaders::shader! {
-        ty: "fragment",
-        src: r"
-            #version 450
-
-            layout(location = 0) in vec2 tex_coords;
-            layout(location = 0) out vec4 f_color;
-
-            layout(set = 0, binding = 0) uniform sampler s;
-            layout(set = 0, binding = 1) uniform texture2D tex;
-
-            void main() {
-                f_color = texture(sampler2D(tex, s), tex_coords);
-            }
-        ",
-    }
 }
