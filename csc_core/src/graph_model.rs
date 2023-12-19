@@ -1,5 +1,7 @@
-use egui_node_graph::{ NodeId, NodeTemplateIter, NodeTemplateTrait, Graph, 
-    InputParamKind, NodeDataTrait, NodeResponse, UserResponseTrait, WidgetValueTrait, DataTypeTrait };
+use egui_node_graph::{
+    DataTypeTrait, Graph, InputParamKind, NodeDataTrait, NodeId, NodeResponse, NodeTemplateIter,
+    NodeTemplateTrait, UserResponseTrait, WidgetValueTrait,
+};
 
 // ------------------------------- MyGraphState
 

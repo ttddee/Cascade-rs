@@ -1,19 +1,19 @@
 #![allow(clippy::eq_op)]
 
+use egui_node_graph::{GraphEditorState, NodeResponse};
 use egui_winit_vulkano::{Gui, GuiConfig};
 use vulkano_util::{
     context::{VulkanoConfig, VulkanoContext},
     window::{VulkanoWindows, WindowDescriptor, WindowMode},
 };
 use winit::{
-    event::{Event, WindowEvent, MouseScrollDelta},
+    event::{Event, MouseScrollDelta, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
 };
-use egui_node_graph::{ GraphEditorState, NodeResponse };
 
-use csc_engine::pipeline::RenderPipeline;
-use csc_core::node_model::{ AllMyNodeTemplates, NodeType, MyNodeData, ImageType, MyValueType };
 use csc_core::graph_model::MyGraphState;
+use csc_core::node_model::{AllMyNodeTemplates, ImageType, MyNodeData, MyValueType, NodeType};
+use csc_engine::pipeline::RenderPipeline;
 
 pub fn main() {
     // Winit event loop
@@ -22,10 +22,12 @@ pub fn main() {
     let context = VulkanoContext::new(VulkanoConfig::default());
     // Vulkano windows (create one)
     let mut windows = VulkanoWindows::default();
-    let window_descriptor = WindowDescriptor { 
+    let window_descriptor = WindowDescriptor {
         width: 1920.,
         height: 1080.,
-        mode: WindowMode::Windowed, ..Default::default() };
+        mode: WindowMode::Windowed,
+        ..Default::default()
+    };
     windows.create_window(&event_loop, &context, &window_descriptor, |ci| {
         ci.image_format = vulkano::format::Format::B8G8R8A8_UNORM;
         ci.min_image_count = ci.min_image_count.max(2);
@@ -33,8 +35,11 @@ pub fn main() {
     // Create the rendering pipeline
     let mut gui_pipeline = RenderPipeline::new(
         context.graphics_queue().clone(),
-        windows.get_primary_renderer_mut().unwrap().swapchain_format(),
-        context.memory_allocator(),
+        windows
+            .get_primary_renderer_mut()
+            .unwrap()
+            .swapchain_format(),
+        context.memory_allocator().clone(),
     );
     // Create gui subpass
     let mut gui = Gui::new_with_subpass(
@@ -42,11 +47,20 @@ pub fn main() {
         windows.get_primary_renderer_mut().unwrap().surface(),
         windows.get_primary_renderer_mut().unwrap().graphics_queue(),
         gui_pipeline.gui_pass(),
-        windows.get_primary_renderer_mut().unwrap().swapchain_format(),
+        windows
+            .get_primary_renderer_mut()
+            .unwrap()
+            .swapchain_format(),
         GuiConfig::default(),
     );
 
-    let mut graph_editor_state: GraphEditorState<MyNodeData, ImageType, MyValueType, NodeType, MyGraphState> = GraphEditorState::new(0.0);
+    let mut graph_editor_state: GraphEditorState<
+        MyNodeData,
+        ImageType,
+        MyValueType,
+        NodeType,
+        MyGraphState,
+    > = GraphEditorState::new(0.0);
     let mut user_state = MyGraphState::default();
 
     // Create gui state (pass anything your state requires)
@@ -66,7 +80,11 @@ pub fn main() {
                     WindowEvent::CloseRequested => {
                         *control_flow = ControlFlow::Exit;
                     }
-                    WindowEvent::KeyboardInput { device_id: _, input: _, is_synthetic: false } => {
+                    WindowEvent::KeyboardInput {
+                        device_id: _,
+                        input: _,
+                        is_synthetic: false,
+                    } => {
                         // if state == ElementState::Pressed && !event.repeat {
                         //     match event.key_without_modifiers().as_ref() {
                         //         Key::Character("1") => {
@@ -79,7 +97,6 @@ pub fn main() {
                         //         _ => (),
                         //     }
                         // }
-
                     }
                     // WindowEvent::MouseInput { device_id: _, state: _, button, modifiers: _} => {
                     //     //println!("Click on {:?} button", button);
@@ -100,7 +117,7 @@ pub fn main() {
                     //         _ => (),
                     //     }
                     //     //println!("{:?}", delta);
-                        
+
                     // }
                     _ => (),
                 }
@@ -109,56 +126,56 @@ pub fn main() {
                 // Set immediate UI in redraw here
                 gui.immediate_ui(|gui| {
                     let ctx = gui.context();
-                        egui::TopBottomPanel::top("main_menu").show(&ctx, |ui| {
-                            egui::menu::bar(ui, |ui| {
-                                egui::widgets::global_dark_light_mode_switch(ui);
-                            });
+                    egui::TopBottomPanel::top("main_menu").show(&ctx, |ui| {
+                        egui::menu::bar(ui, |ui| {
+                            egui::widgets::global_dark_light_mode_switch(ui);
                         });
-                        csc_ui::properties_panel::build_properties_panel(&ctx, &mut graph_editor_state);
+                    });
+                    csc_ui::properties_panel::build_properties_panel(&ctx, &mut graph_editor_state);
 
-
-                        // -------- Node Graph
-                        let graph_response = egui::TopBottomPanel::bottom("nodegraph_panel").min_height(400.).resizable(true)
-                            .show(&ctx, |ui| {
-                                
-                                graph_editor_state.draw_graph_editor(
-                                    ui,
-                                    AllMyNodeTemplates,
-                                    &mut user_state,
-                                    Vec::default(),
-                                )
-                            })
-                            .inner;
-                        for node_response in graph_response.node_responses {
-                            // Here, we ignore all other graph events. But you may find
-                            // some use for them. For example, by playing a sound when a new
-                            // connection is created
-                            // if let NodeResponse::User(user_event) = node_response {
-                            //     match user_event {
-                            //         MyResponse::SetActiveNode(node) => user_state.active_node = Some(node),
-                            //         MyResponse::ClearActiveNode => user_state.active_node = None,
-                            //     }
-                            // }
-                            //if let NodeResponse::User()
-                        }
-                
-                        // if let Some(node) = user_state.active_node {
-                        //     if graph_editor_state.graph.nodes.contains_key(node) {
-                        //         // let text = match evaluate_node(&graph_editor_state.graph, node, &mut HashMap::new()) {
-                        //         //     Ok(value) => format!("The result is: {:?}", value),
-                        //         //     Err(err) => format!("Execution error: {}", err),
-                        //         // };
-                        //         // ctx.debug_painter().text(
-                        //         //     egui::pos2(10.0, 35.0),
-                        //         //     egui::Align2::LEFT_TOP,
-                        //         //     text,
-                        //         //     TextStyle::Button.resolve(&ctx.style()),
-                        //         //     egui::Color32::WHITE,
-                        //         // );
-                        //     } else {
-                        //         user_state.active_node = None;
+                    // -------- Node Graph
+                    let graph_response = egui::TopBottomPanel::bottom("nodegraph_panel")
+                        .min_height(400.)
+                        .resizable(true)
+                        .show(&ctx, |ui| {
+                            graph_editor_state.draw_graph_editor(
+                                ui,
+                                AllMyNodeTemplates,
+                                &mut user_state,
+                                Vec::default(),
+                            )
+                        })
+                        .inner;
+                    for node_response in graph_response.node_responses {
+                        // Here, we ignore all other graph events. But you may find
+                        // some use for them. For example, by playing a sound when a new
+                        // connection is created
+                        // if let NodeResponse::User(user_event) = node_response {
+                        //     match user_event {
+                        //         MyResponse::SetActiveNode(node) => user_state.active_node = Some(node),
+                        //         MyResponse::ClearActiveNode => user_state.active_node = None,
                         //     }
                         // }
+                        //if let NodeResponse::User()
+                    }
+
+                    // if let Some(node) = user_state.active_node {
+                    //     if graph_editor_state.graph.nodes.contains_key(node) {
+                    //         // let text = match evaluate_node(&graph_editor_state.graph, node, &mut HashMap::new()) {
+                    //         //     Ok(value) => format!("The result is: {:?}", value),
+                    //         //     Err(err) => format!("Execution error: {}", err),
+                    //         // };
+                    //         // ctx.debug_painter().text(
+                    //         //     egui::pos2(10.0, 35.0),
+                    //         //     egui::Align2::LEFT_TOP,
+                    //         //     text,
+                    //         //     TextStyle::Button.resolve(&ctx.style()),
+                    //         //     egui::Color32::WHITE,
+                    //         // );
+                    //     } else {
+                    //         user_state.active_node = None;
+                    //     }
+                    // }
                 });
                 // Render
                 // Acquire swapchain future
@@ -178,4 +195,3 @@ pub fn main() {
         }
     });
 }
-

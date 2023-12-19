@@ -6,16 +6,23 @@ use vulkano::{
     command_buffer::{
         allocator::{StandardCommandBufferAllocator, StandardCommandBufferAllocatorCreateInfo},
         AutoCommandBufferBuilder, CommandBufferInheritanceInfo, CommandBufferUsage,
-        RenderPassBeginInfo, SubpassBeginInfo, SubpassContents,
+        CopyBufferToImageInfo, RenderPassBeginInfo, SubpassBeginInfo, SubpassContents, PrimaryCommandBufferAbstract,
     },
-    device::{Device, Queue, self},
+    descriptor_set::{
+        allocator::StandardDescriptorSetAllocator, PersistentDescriptorSet, WriteDescriptorSet,
+    },
+    device::{Device, Queue},
     format::Format,
-    image::{view::ImageView, SampleCount},
+    image::{
+        sampler::{Filter, Sampler, SamplerAddressMode, SamplerCreateInfo},
+        view::ImageView,
+        Image, ImageCreateInfo, ImageType, ImageUsage, SampleCount,
+    },
     memory::allocator::{AllocationCreateInfo, MemoryTypeFilter, StandardMemoryAllocator},
     pipeline::{
         graphics::{
-            color_blend::{ColorBlendAttachmentState, ColorBlendState},
-            input_assembly::InputAssemblyState,
+            color_blend::{AttachmentBlend, ColorBlendAttachmentState, ColorBlendState},
+            input_assembly::{InputAssemblyState, PrimitiveTopology},
             multisample::MultisampleState,
             rasterization::RasterizationState,
             vertex_input::{Vertex, VertexDefinition},
@@ -23,14 +30,12 @@ use vulkano::{
             GraphicsPipelineCreateInfo,
         },
         layout::PipelineDescriptorSetLayoutCreateInfo,
-        DynamicState, GraphicsPipeline, PipelineLayout, PipelineShaderStageCreateInfo,
+        DynamicState, GraphicsPipeline, Pipeline, PipelineBindPoint, PipelineLayout,
+        PipelineShaderStageCreateInfo,
     },
     render_pass::{Framebuffer, FramebufferCreateInfo, RenderPass, Subpass},
     sync::GpuFuture,
-};
-use vulkano_util::{
-    context::{VulkanoConfig, VulkanoContext},
-    window::{VulkanoWindows, WindowDescriptor, WindowMode},
+    DeviceSize, 
 };
 
 pub struct RenderPipeline {
@@ -39,14 +44,15 @@ pub struct RenderPipeline {
     pipeline: Arc<GraphicsPipeline>,
     subpass: Subpass,
     vertex_buffer: Subbuffer<[MyVertex]>,
-    command_buffer_allocator: StandardCommandBufferAllocator,
+    sampler: Arc<Sampler>,
+    allocator: Arc<StandardMemoryAllocator>,
 }
 
 impl RenderPipeline {
     pub fn new(
         queue: Arc<Queue>,
         image_format: vulkano::format::Format,
-        allocator: &Arc<StandardMemoryAllocator>,
+        allocator: Arc<StandardMemoryAllocator>,
     ) -> Self {
         let render_pass = Self::create_render_pass(queue.device().clone(), image_format);
         let (pipeline, subpass) =
@@ -54,35 +60,61 @@ impl RenderPipeline {
 
         let vertex_buffer = Buffer::from_iter(
             allocator.clone(),
-            BufferCreateInfo { usage: BufferUsage::VERTEX_BUFFER, ..Default::default() },
+            BufferCreateInfo {
+                usage: BufferUsage::VERTEX_BUFFER,
+                ..Default::default()
+            },
             AllocationCreateInfo {
                 memory_type_filter: MemoryTypeFilter::PREFER_DEVICE
                     | MemoryTypeFilter::HOST_RANDOM_ACCESS,
                 ..Default::default()
             },
             [
+                // // Upper left triangle
+                // MyVertex { position: [-1.0, -1.0], color: [1.0, 0.0, 0.0, 1.0] },
+                // MyVertex { position: [-1.0, 1.0], color: [0.0, 1.0, 0.0, 1.0] },
+                // MyVertex { position: [1.0, -1.0], color: [0.0, 0.0, 1.0, 1.0] },
+                // // Bottom right triangle
+                // MyVertex { position: [-1.0, 1.0], color: [1.0, 0.0, 0.0, 1.0] },
+                // MyVertex { position: [1.0, 1.0], color: [0.0, 1.0, 0.0, 1.0] },
+                // MyVertex { position: [1.0, -1.0], color: [0.0, 0.0, 1.0, 1.0] },
                 // Upper left triangle
-                MyVertex { position: [-1.0, -1.0], color: [1.0, 0.0, 0.0, 1.0] },
-                MyVertex { position: [-1.0, 1.0], color: [0.0, 1.0, 0.0, 1.0] },
-                MyVertex { position: [1.0, -1.0], color: [0.0, 0.0, 1.0, 1.0] }, 
-                // Bottom right triangle
-                MyVertex { position: [-1.0, 1.0], color: [1.0, 0.0, 0.0, 1.0] },
-                MyVertex { position: [1.0, 1.0], color: [0.0, 1.0, 0.0, 1.0] },
-                MyVertex { position: [1.0, -1.0], color: [0.0, 0.0, 1.0, 1.0] }, 
+                MyVertex {
+                    position: [-1.0, -1.0],
+                },
+                MyVertex {
+                    position: [-1.0, 1.0],
+                },
+                MyVertex {
+                    position: [1.0, -1.0],
+                },
+                MyVertex {
+                    position: [1.0, 1.0],
+                },
             ],
         )
         .unwrap();
 
-        // Create an allocator for command-buffer data
-        let command_buffer_allocator = StandardCommandBufferAllocator::new(
+        let sampler = Sampler::new(
             queue.device().clone(),
-            StandardCommandBufferAllocatorCreateInfo {
-                secondary_buffer_count: 32,
+            SamplerCreateInfo {
+                mag_filter: Filter::Linear,
+                min_filter: Filter::Linear,
+                address_mode: [SamplerAddressMode::ClampToBorder; 3],
                 ..Default::default()
             },
-        );
+        )
+        .unwrap();
 
-        Self { queue, render_pass, pipeline, subpass, vertex_buffer, command_buffer_allocator }
+        Self {
+            queue,
+            render_pass,
+            pipeline,
+            subpass,
+            vertex_buffer,
+            sampler,
+            allocator,
+        }
     }
 
     fn create_render_pass(device: Arc<Device>, format: Format) -> Arc<RenderPass> {
@@ -121,11 +153,14 @@ impl RenderPipeline {
             .entry_point("main")
             .unwrap();
 
-        let vertex_input_state =
-            MyVertex::per_vertex().definition(&vs.info().input_interface).unwrap();
+        let vertex_input_state = MyVertex::per_vertex()
+            .definition(&vs.info().input_interface)
+            .unwrap();
 
-        let stages =
-            [PipelineShaderStageCreateInfo::new(vs), PipelineShaderStageCreateInfo::new(fs)];
+        let stages = [
+            PipelineShaderStageCreateInfo::new(vs),
+            PipelineShaderStageCreateInfo::new(fs),
+        ];
 
         let layout = PipelineLayout::new(
             device.clone(),
@@ -137,21 +172,31 @@ impl RenderPipeline {
 
         let subpass = Subpass::from(render_pass, 0).unwrap();
         (
-            GraphicsPipeline::new(device, None, GraphicsPipelineCreateInfo {
-                stages: stages.into_iter().collect(),
-                vertex_input_state: Some(vertex_input_state),
-                input_assembly_state: Some(InputAssemblyState::default()),
-                viewport_state: Some(ViewportState::default()),
-                rasterization_state: Some(RasterizationState::default()),
-                multisample_state: Some(MultisampleState::default()),
-                color_blend_state: Some(ColorBlendState::with_attachment_states(
-                    subpass.num_color_attachments(),
-                    ColorBlendAttachmentState::default(),
-                )),
-                dynamic_state: [DynamicState::Viewport].into_iter().collect(),
-                subpass: Some(subpass.clone().into()),
-                ..GraphicsPipelineCreateInfo::layout(layout)
-            })
+            GraphicsPipeline::new(
+                device,
+                None,
+                GraphicsPipelineCreateInfo {
+                    stages: stages.into_iter().collect(),
+                    vertex_input_state: Some(vertex_input_state),
+                    input_assembly_state: Some(InputAssemblyState {
+                        topology: PrimitiveTopology::TriangleStrip,
+                        ..Default::default()
+                    }),
+                    viewport_state: Some(ViewportState::default()),
+                    rasterization_state: Some(RasterizationState::default()),
+                    multisample_state: Some(MultisampleState::default()),
+                    color_blend_state: Some(ColorBlendState::with_attachment_states(
+                        subpass.num_color_attachments(),
+                        ColorBlendAttachmentState {
+                            blend: Some(AttachmentBlend::alpha()),
+                            ..Default::default()
+                        },
+                    )),
+                    dynamic_state: [DynamicState::Viewport].into_iter().collect(),
+                    subpass: Some(subpass.clone().into()),
+                    ..GraphicsPipelineCreateInfo::layout(layout)
+                },
+            )
             .unwrap(),
             subpass,
         )
@@ -162,29 +207,121 @@ impl RenderPipeline {
         before_future: Box<dyn GpuFuture>,
         image: Arc<ImageView>,
         gui: &mut Gui,
-        //zoom: f32,
     ) -> Box<dyn GpuFuture> {
+        let descriptor_set_allocator = Arc::new(StandardDescriptorSetAllocator::new(
+            self.queue.device().clone(),
+            Default::default(),
+        ));
+
+        // Create an allocator for command-buffer data
+        let command_buffer_allocator = Arc::new(StandardCommandBufferAllocator::new(
+            self.queue.device().clone(),
+            StandardCommandBufferAllocatorCreateInfo {
+                secondary_buffer_count: 32,
+                ..Default::default()
+            },
+        ));
+
         let mut builder = AutoCommandBufferBuilder::primary(
-            &self.command_buffer_allocator,
+            &command_buffer_allocator,
             self.queue.queue_family_index(),
             CommandBufferUsage::OneTimeSubmit,
         )
         .unwrap();
 
         let dimensions = image.image().extent();
-        let framebuffer = Framebuffer::new(self.render_pass.clone(), FramebufferCreateInfo {
-            attachments: vec![image],
-            ..Default::default()
-        })
+        let framebuffer = Framebuffer::new(
+            self.render_pass.clone(),
+            FramebufferCreateInfo {
+                attachments: vec![image],
+                ..Default::default()
+            },
+        )
         .unwrap();
-        //print!("Zoom: {}", zoom);
-        //let push_constants = vs::PushConstantData { x: 0.0, y: 0.0, z: 0.0, w: zoom };
+
+        let mut uploads = AutoCommandBufferBuilder::primary(
+            &command_buffer_allocator.clone(),
+            self.queue.queue_family_index(),
+            CommandBufferUsage::OneTimeSubmit,
+        )
+        .unwrap();
+
+        let texture = {
+            let png_bytes = include_bytes!("../../assets/images/test.png").as_slice();
+            let decoder = png::Decoder::new(png_bytes);
+            let mut reader = decoder.read_info().unwrap();
+            let info = reader.info();
+            let extent = [info.width, info.height, 1];
+
+            let upload_buffer = Buffer::new_slice(
+                self.allocator.clone(),
+                BufferCreateInfo {
+                    usage: BufferUsage::TRANSFER_SRC,
+                    ..Default::default()
+                },
+                AllocationCreateInfo {
+                    memory_type_filter: MemoryTypeFilter::PREFER_HOST
+                        | MemoryTypeFilter::HOST_SEQUENTIAL_WRITE,
+                    ..Default::default()
+                },
+                (info.width * info.height * 4) as DeviceSize,
+            )
+            .unwrap();
+
+            reader
+                .next_frame(&mut upload_buffer.write().unwrap())
+                .unwrap();
+
+            let image = Image::new(
+                self.allocator.clone(),
+                ImageCreateInfo {
+                    image_type: ImageType::Dim2d,
+                    format: Format::R8G8B8A8_SRGB,
+                    extent,
+                    usage: ImageUsage::TRANSFER_DST | ImageUsage::SAMPLED,
+                    ..Default::default()
+                },
+                AllocationCreateInfo::default(),
+            )
+            .unwrap();
+
+            uploads
+                .copy_buffer_to_image(CopyBufferToImageInfo::buffer_image(
+                    upload_buffer,
+                    image.clone(),
+                ))
+                .unwrap();
+
+            ImageView::new_default(image).unwrap()
+        };
+
+        let layout = self.pipeline.layout().set_layouts().get(0).unwrap();
+
+        let desc_set = PersistentDescriptorSet::new(
+            &descriptor_set_allocator.clone(),
+            layout.clone(),
+            [
+                WriteDescriptorSet::sampler(0, self.sampler.clone()),
+                WriteDescriptorSet::image_view(1, texture),
+            ],
+            [],
+        )
+        .unwrap();
+
+        let mut previous_frame_end = Some(
+            uploads
+                .build()
+                .unwrap()
+                .execute(self.queue.clone())
+                .unwrap()
+                .boxed(),
+        );
 
         // Begin render pipeline commands
         builder
             .begin_render_pass(
                 RenderPassBeginInfo {
-                    clear_values: vec![Some([0.0, 0.0, 0.0, 1.0].into())],
+                    clear_values: vec![Some([0.0, 0.3, 0.5, 1.0].into())],
                     ..RenderPassBeginInfo::framebuffer(framebuffer)
                 },
                 SubpassBeginInfo {
@@ -196,7 +333,7 @@ impl RenderPipeline {
 
         // Render first draw pass
         let mut secondary_builder = AutoCommandBufferBuilder::secondary(
-            &self.command_buffer_allocator,
+            &command_buffer_allocator,
             self.queue.queue_family_index(),
             CommandBufferUsage::MultipleSubmit,
             CommandBufferInheritanceInfo {
@@ -221,8 +358,13 @@ impl RenderPipeline {
             .unwrap()
             .bind_vertex_buffers(0, self.vertex_buffer.clone())
             .unwrap()
-            //.push_constants(self.pipeline.layout().clone(), 0, push_constants)
-            //.unwrap()
+            .bind_descriptor_sets(
+                PipelineBindPoint::Graphics,
+                self.pipeline.layout().clone(),
+                0,
+                desc_set.clone(),
+            )
+            .unwrap()
             .draw(self.vertex_buffer.len() as u32, 1, 0, 0)
             .unwrap();
         let cb = secondary_builder.build().unwrap();
@@ -230,10 +372,13 @@ impl RenderPipeline {
 
         // Move on to next subpass for gui
         builder
-            .next_subpass(Default::default(), SubpassBeginInfo {
-                contents: SubpassContents::SecondaryCommandBuffers,
-                ..Default::default()
-            })
+            .next_subpass(
+                Default::default(),
+                SubpassBeginInfo {
+                    contents: SubpassContents::SecondaryCommandBuffers,
+                    ..Default::default()
+                },
+            )
             .unwrap();
         // Draw gui on subpass
         let cb = gui.draw_on_subpass_image([dimensions[0], dimensions[1]]);
@@ -241,8 +386,12 @@ impl RenderPipeline {
 
         // Last end render pass
         builder.end_render_pass(Default::default()).unwrap();
+
         let command_buffer = builder.build().unwrap();
-        let after_future = before_future.then_execute(self.queue.clone(), command_buffer).unwrap();
+
+        let after_future = before_future
+            .then_execute(self.queue.clone(), command_buffer)
+            .unwrap();
 
         after_future.boxed()
     }
@@ -253,37 +402,40 @@ impl RenderPipeline {
 struct MyVertex {
     #[format(R32G32_SFLOAT)]
     position: [f32; 2],
-    #[format(R32G32B32A32_SFLOAT)]
-    color: [f32; 4],
 }
 
 mod vs {
     vulkano_shaders::shader! {
         ty: "vertex",
-        src: "
-#version 450
-layout(location = 0) in vec2 position;
-layout(location = 1) in vec4 color;
+        src: r"
+            #version 450
 
-layout(location = 0) out vec4 v_color;
+            layout(location = 0) in vec2 position;
+            layout(location = 0) out vec2 tex_coords;
 
-void main() {
-    gl_Position = vec4(position, 0.0, 1.0);
-    v_color = color;
-}"
+            void main() {
+                gl_Position = vec4(position, 0.0, 1.0);
+                tex_coords = position + vec2(0.5);
+            }
+        ",
     }
 }
 
 mod fs {
     vulkano_shaders::shader! {
         ty: "fragment",
-        src: "
-#version 450
-layout(location = 0) in vec4 v_color;
-layout(location = 0) out vec4 f_color;
+        src: r"
+            #version 450
 
-void main() {
-    f_color = v_color;
-}"
+            layout(location = 0) in vec2 tex_coords;
+            layout(location = 0) out vec4 f_color;
+
+            layout(set = 0, binding = 0) uniform sampler s;
+            layout(set = 0, binding = 1) uniform texture2D tex;
+
+            void main() {
+                f_color = texture(sampler2D(tex, s), tex_coords);
+            }
+        ",
     }
 }

@@ -2,8 +2,10 @@ use std::vec;
 
 use std::borrow::Cow;
 
-use egui_node_graph::{ NodeId, NodeTemplateIter, NodeTemplateTrait, Graph, 
-    InputParamKind, NodeDataTrait, NodeResponse, UserResponseTrait, WidgetValueTrait, DataTypeTrait };
+use egui_node_graph::{
+    DataTypeTrait, Graph, InputParamKind, NodeDataTrait, NodeId, NodeResponse, NodeTemplateIter,
+    NodeTemplateTrait, UserResponseTrait, WidgetValueTrait,
+};
 
 use crate::graph_model::MyGraphState;
 
@@ -13,8 +15,6 @@ type MyGraph = Graph<MyNodeData, ImageType, MyValueType>;
 
 //--------------------------------------------
 
-
-
 pub struct NodeModel {
     node_type: NodeType,
     category: NodeCategory,
@@ -23,9 +23,6 @@ pub struct NodeModel {
     properties: Vec<NodeProperty>,
 }
 
-
-
-
 #[derive(Clone, Copy, Eq, PartialEq, Hash)]
 pub enum NodeCategory {
     IO,
@@ -33,7 +30,6 @@ pub enum NodeCategory {
 }
 
 impl NodeCategory {
-
     fn name(&self) -> &'static str {
         match self {
             NodeCategory::IO => "IO",
@@ -82,7 +78,6 @@ pub enum NodeType {
 }
 
 impl NodeType {
-    
     pub fn name(&self) -> Cow<'_, str> {
         match self {
             NodeType::Blur => Cow::Borrowed("Blur"),
@@ -122,7 +117,7 @@ impl NodeType {
 
 // A trait for the node kinds, which tells the library how to build new nodes
 // from the templates in the node finder
-impl NodeTemplateTrait for NodeType{
+impl NodeTemplateTrait for NodeType {
     type NodeData = MyNodeData;
     type DataType = ImageType;
     type ValueType = MyValueType;
@@ -146,13 +141,31 @@ impl NodeTemplateTrait for NodeType{
 
     fn user_data(&self, _user_state: &mut Self::UserState) -> Self::NodeData {
         let properties: Vec<NodeProperty> = match self {
-            NodeType::Blur => vec!{ NodeProperty::new_float("Intensity".to_string(), 1.0, 10.0, 1.0, 1.0) },
-            NodeType::Read  => vec!{ NodeProperty::new_float("Intensity".to_string(), 1.0, 10.0, 1.0, 1.0) },
-            NodeType::Write => vec!{ NodeProperty::new_float("Intensity".to_string(), 1.0, 10.0, 1.0, 1.0) },
+            NodeType::Blur => vec![NodeProperty::new_float(
+                "Intensity".to_string(),
+                1.0,
+                10.0,
+                1.0,
+                1.0,
+            )],
+            NodeType::Read => vec![NodeProperty::new_float(
+                "Intensity".to_string(),
+                1.0,
+                10.0,
+                1.0,
+                1.0,
+            )],
+            NodeType::Write => vec![NodeProperty::new_float(
+                "Intensity".to_string(),
+                1.0,
+                10.0,
+                1.0,
+                1.0,
+            )],
         };
-        MyNodeData { 
-            node_type: *self, node_properties: properties
-            
+        MyNodeData {
+            node_type: *self,
+            node_properties: properties,
         }
     }
 
@@ -213,7 +226,6 @@ impl NodeTemplateTrait for NodeType{
     }
 }
 
-
 // ------------------------------- MyNodeData
 
 /// The NodeData holds a custom data struct inside each node. It's useful to
@@ -250,7 +262,7 @@ impl NodeDataTrait for MyNodeData {
         // the value stored in the global user state, and draw different button
         // UIs based on that.
 
-         let mut responses = vec![];
+        let mut responses = vec![];
         // let is_active = user_state
         //     .active_node
         //     .map(|id| id == node_id)
@@ -356,10 +368,6 @@ impl NodeTemplateIter for AllMyNodeTemplates {
         // This function must return a list of node kinds, which the node finder
         // will use to display it to the user. Crates like strum can reduce the
         // boilerplate in enumerating all variants of an enum.
-        vec![
-            NodeType::Blur,
-            NodeType::Read,
-            NodeType::Write,
-        ]
+        vec![NodeType::Blur, NodeType::Read, NodeType::Write]
     }
 }
