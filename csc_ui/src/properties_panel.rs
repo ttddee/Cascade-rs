@@ -28,12 +28,25 @@ pub fn build_properties_panel(
                     ui.label(node_type.name().as_ref());
                     ui.separator();
 
-                    if let NodeProperty::Float(values) =
-                        &mut active_node.user_data.node_properties[0]
-                    {
-                        let range = RangeInclusive::new(*values.min(), *values.max());
-                        let name = values.name().clone();
-                        ui.add(egui::Slider::new(values.value(), range).text(name));
+                    for property in &mut active_node.user_data.node_properties {
+                        match property {
+                            NodeProperty::Float(data) => {
+                                let range = RangeInclusive::new(*data.min(), *data.max());
+                                let name = data.name().clone();
+                                ui.add(egui::Slider::new(data.value(), range).text(name));
+                            }
+                            NodeProperty::Choice(data) => {
+                                let length = data.choices().len();
+                                let choices = data.choices().clone();
+                                egui::ComboBox::from_label(data.name()).show_index(
+                                    ui,
+                                    data.index(),
+                                    length,
+                                    |i| &choices[i],
+                                );
+                            }
+                            _ => {}
+                        }
                     }
                 }
             }

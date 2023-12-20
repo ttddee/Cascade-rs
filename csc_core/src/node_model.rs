@@ -139,15 +139,16 @@ impl NodeTemplateTrait for NodeType {
         self.node_finder_label(user_state).into()
     }
 
-    fn user_data(&self, _user_state: &mut Self::UserState) -> Self::NodeData {
+    fn node_data(&self, _user_state: &mut Self::UserState) -> Self::NodeData {
         let properties: Vec<NodeProperty> = match self {
-            NodeType::Blur => vec![NodeProperty::new_float(
-                "Intensity".to_string(),
-                1.0,
-                10.0,
-                1.0,
-                1.0,
-            )],
+            NodeType::Blur => vec![
+                NodeProperty::new_float("Intensity".to_string(), 1.0, 10.0, 1.0, 1.0),
+                NodeProperty::new_choice(
+                    "Type".to_string(),
+                    vec!["Box".to_string(), "Gaussian".to_string()],
+                    0,
+                ),
+            ],
             NodeType::Read => vec![NodeProperty::new_float(
                 "Intensity".to_string(),
                 1.0,

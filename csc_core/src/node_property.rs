@@ -1,6 +1,7 @@
 pub enum NodeProperty {
-    Float(PropertyData<f32>),
-    Int(PropertyData<i32>),
+    Float(NumberData<f32>),
+    Int(NumberData<i32>),
+    Choice(ChoiceData),
 }
 
 impl NodeProperty {
@@ -11,7 +12,7 @@ impl NodeProperty {
         step_size: f32,
         initial_value: f32,
     ) -> Self {
-        NodeProperty::Float(PropertyData {
+        NodeProperty::Float(NumberData {
             name: property_name,
             min: minimum,
             max: maximum,
@@ -27,7 +28,7 @@ impl NodeProperty {
         step_size: i32,
         initial_value: i32,
     ) -> Self {
-        NodeProperty::Int(PropertyData {
+        NodeProperty::Int(NumberData {
             name: property_name,
             min: minimum,
             max: maximum,
@@ -35,9 +36,21 @@ impl NodeProperty {
             value: initial_value,
         })
     }
+
+    pub fn new_choice(
+        property_name: String,
+        choices_list: Vec<String>,
+        initial_index: usize,
+    ) -> Self {
+        NodeProperty::Choice(ChoiceData {
+            name: property_name,
+            choices: choices_list,
+            index: initial_index,
+        })
+    }
 }
 
-pub struct PropertyData<T> {
+pub struct NumberData<T> {
     name: String,
     min: T,
     max: T,
@@ -45,7 +58,7 @@ pub struct PropertyData<T> {
     value: T,
 }
 
-impl<T> PropertyData<T> {
+impl<T> NumberData<T> {
     pub fn name(&self) -> &String {
         &self.name
     }
@@ -64,5 +77,25 @@ impl<T> PropertyData<T> {
 
     pub fn value(&mut self) -> &mut T {
         &mut self.value
+    }
+}
+
+pub struct ChoiceData {
+    name: String,
+    choices: Vec<String>,
+    index: usize,
+}
+
+impl ChoiceData {
+    pub fn name(&self) -> &String {
+        &self.name
+    }
+
+    pub fn choices(&self) -> &Vec<String> {
+        &self.choices
+    }
+
+    pub fn index(&mut self) -> &mut usize {
+        &mut self.index
     }
 }
