@@ -18,18 +18,23 @@ csc_ui = { path = "csc_ui" }
 csc_engine = { path = "csc_engine" }
 csc_core = { path = "csc_core" }
 ahash = "0.8.3"
-egui = "0.23"
-egui-winit = "0.23"
-winit = "0.28.2"
-#egui_node_graph = { git = "https://github.com/ttddee/egui_node_graph", rev ="b8a68830" }
-egui_node_graph = { path = "../egui_node_graph/egui_node_graph" }
-anyhow = "1.0"
-vulkano-util = "0.34.1"
-egui_winit_vulkano = { git = "https://github.com/hakolao/egui_winit_vulkano" }
-vulkano = "0.34.1"
+anyhow = { workspace = true }
+egui_winit_vulkano = { workspace = true }
+egui_node_graph = { workspace = true }
+vulkano = { workspace = true }
+vulkano-util = { workspace = true }
+winit = { workspace = true }
 
 [workspace.dependencies]
+egui = "0.24.1"
+ecolor = "0.24.1"
+egui-winit = "0.24.1"
+winit = "0.28.2"
+egui_winit_vulkano = "0.27.0"
+vulkano = "0.34.1"
+vulkano-util = "0.34.1"
+egui_node_graph = { path = "../egui_node_graph/egui_node_graph" }
+anyhow = "1.0"
 
 [workspace.dev-dependencies]
 cgmath = "0.18.0"
-egui_demo_lib = "0.23"

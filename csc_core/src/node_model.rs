@@ -54,8 +54,8 @@ pub enum ImageType {
 impl DataTypeTrait<MyGraphState> for ImageType {
     fn data_type_color(&self, _user_state: &mut MyGraphState) -> ecolor::Color32 {
         match self {
-            ImageType::RGB => egui::Color32::from_rgb(229, 70, 61),
-            ImageType::Alpha => egui::Color32::from_rgb(35, 114, 239),
+            ImageType::RGB => ecolor::Color32::from_rgb(229, 70, 61),
+            ImageType::Alpha => ecolor::Color32::from_rgb(35, 114, 239),
         }
     }
 

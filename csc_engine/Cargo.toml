@@ -4,9 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-vulkano = "0.34.1"
-vulkano-util = "0.34.1"
+vulkano = { workspace = true }
+vulkano-util = { workspace = true }
+egui_winit_vulkano = { workspace = true }
 vulkano-shaders = "0.34.0"
 png = "0.17.10"
-
-egui_winit_vulkano = { git = "https://github.com/hakolao/egui_winit_vulkano" }

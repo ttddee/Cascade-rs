@@ -1,7 +1,7 @@
 #![allow(clippy::eq_op)]
 
 use egui_node_graph::{GraphEditorState, NodeResponse};
-use egui_winit_vulkano::{Gui, GuiConfig};
+use egui_winit_vulkano::{egui, Gui, GuiConfig};
 use vulkano_util::{
     context::{VulkanoConfig, VulkanoContext},
     window::{VulkanoWindows, WindowDescriptor, WindowMode},
