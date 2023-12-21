@@ -49,6 +49,8 @@ pub struct RenderPipeline {
     vertex_buffer: Subbuffer<[CsVertex]>,
     sampler: Arc<Sampler>,
     allocator: Arc<StandardMemoryAllocator>,
+    descriptor_set_allocator: Arc<StandardDescriptorSetAllocator>,
+    command_buffer_allocator: Arc<StandardCommandBufferAllocator>,
 }
 
 impl RenderPipeline {
@@ -100,6 +102,19 @@ impl RenderPipeline {
         )
         .unwrap();
 
+        let descriptor_set_allocator = Arc::new(StandardDescriptorSetAllocator::new(
+            queue.device().clone(),
+            Default::default(),
+        ));
+
+        let command_buffer_allocator = Arc::new(StandardCommandBufferAllocator::new(
+            queue.device().clone(),
+            StandardCommandBufferAllocatorCreateInfo {
+                secondary_buffer_count: 32,
+                ..Default::default()
+            },
+        ));
+
         Self {
             queue,
             render_pass,
@@ -108,6 +123,8 @@ impl RenderPipeline {
             vertex_buffer,
             sampler,
             allocator,
+            descriptor_set_allocator,
+            command_buffer_allocator,
         }
     }
 
@@ -202,22 +219,8 @@ impl RenderPipeline {
         image: Arc<ImageView>,
         gui: &mut Gui,
     ) -> Box<dyn GpuFuture> {
-        let descriptor_set_allocator = Arc::new(StandardDescriptorSetAllocator::new(
-            self.queue.device().clone(),
-            Default::default(),
-        ));
-
-        // Create an allocator for command-buffer data
-        let command_buffer_allocator = Arc::new(StandardCommandBufferAllocator::new(
-            self.queue.device().clone(),
-            StandardCommandBufferAllocatorCreateInfo {
-                secondary_buffer_count: 32,
-                ..Default::default()
-            },
-        ));
-
         let mut builder = AutoCommandBufferBuilder::primary(
-            &command_buffer_allocator,
+            &self.command_buffer_allocator,
             self.queue.queue_family_index(),
             CommandBufferUsage::OneTimeSubmit,
         )
@@ -234,7 +237,7 @@ impl RenderPipeline {
         .unwrap();
 
         let mut uploads = AutoCommandBufferBuilder::primary(
-            &command_buffer_allocator.clone(),
+            &self.command_buffer_allocator,
             self.queue.queue_family_index(),
             CommandBufferUsage::OneTimeSubmit,
         )
@@ -292,7 +295,7 @@ impl RenderPipeline {
         let layout = self.pipeline.layout().set_layouts().get(0).unwrap();
 
         let desc_set = PersistentDescriptorSet::new(
-            &descriptor_set_allocator.clone(),
+            &self.descriptor_set_allocator,
             layout.clone(),
             [
                 WriteDescriptorSet::sampler(0, self.sampler.clone()),
@@ -327,7 +330,7 @@ impl RenderPipeline {
 
         // Render first draw pass
         let mut secondary_builder = AutoCommandBufferBuilder::secondary(
-            &command_buffer_allocator,
+            &self.command_buffer_allocator,
             self.queue.queue_family_index(),
             CommandBufferUsage::MultipleSubmit,
             CommandBufferInheritanceInfo {
