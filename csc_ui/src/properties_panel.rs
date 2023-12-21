@@ -25,29 +25,38 @@ pub fn build_properties_panel(
                 let active_node = &mut graph_editor_state.graph.nodes[node_id];
                 let node_type = active_node.user_data.node_type;
                 if active_node.user_data.node_type == NodeType::Blur {
-                    ui.label(node_type.name().as_ref());
+                    ui.label(egui::RichText::new(node_type.name()).strong());
                     ui.separator();
 
-                    for property in &mut active_node.user_data.node_properties {
-                        match property {
-                            NodeProperty::Float(data) => {
-                                let range = RangeInclusive::new(*data.min(), *data.max());
-                                let name = data.name().clone();
-                                ui.add(egui::Slider::new(data.value(), range).text(name));
+                    egui::Grid::new("properties_grid")
+                        .num_columns(2)
+                        .spacing([40.0, 4.0])
+                        .striped(true)
+                        .show(ui, |ui| {
+                            for property in &mut active_node.user_data.node_properties {
+                                match property {
+                                    NodeProperty::Float(data) => {
+                                        let range = RangeInclusive::new(*data.min(), *data.max());
+                                        ui.add(egui::Label::new(data.name().clone()));
+                                        ui.add(egui::Slider::new(data.value(), range));
+                                        ui.end_row();
+                                    }
+                                    NodeProperty::Choice(data) => {
+                                        let length = data.choices().len();
+                                        let choices = data.choices().clone();
+                                        ui.add(egui::Label::new(data.name()));
+                                        egui::ComboBox::from_id_source("combobox").show_index(
+                                            ui,
+                                            data.index(),
+                                            length,
+                                            |i| &choices[i],
+                                        );
+                                        ui.end_row();
+                                    }
+                                    _ => {}
+                                }
                             }
-                            NodeProperty::Choice(data) => {
-                                let length = data.choices().len();
-                                let choices = data.choices().clone();
-                                egui::ComboBox::from_label(data.name()).show_index(
-                                    ui,
-                                    data.index(),
-                                    length,
-                                    |i| &choices[i],
-                                );
-                            }
-                            _ => {}
-                        }
-                    }
+                        });
                 }
             }
         });
