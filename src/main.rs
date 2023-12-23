@@ -60,7 +60,7 @@ pub fn main() {
         MyValueType,
         NodeType,
         MyGraphState,
-    > = GraphEditorState::new(0.0);
+    > = GraphEditorState::new(1.0);
     let mut user_state = MyGraphState::default();
 
     // Create gui state (pass anything your state requires)
