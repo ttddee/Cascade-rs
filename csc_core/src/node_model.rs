@@ -13,16 +13,6 @@ use crate::node_property::NodeProperty;
 
 type MyGraph = Graph<MyNodeData, ImageType, MyValueType>;
 
-//--------------------------------------------
-
-pub struct NodeModel {
-    node_type: NodeType,
-    category: NodeCategory,
-    inputs: Vec<ImageType>,
-    outputs: Vec<ImageType>,
-    properties: Vec<NodeProperty>,
-}
-
 #[derive(Clone, Copy, Eq, PartialEq, Hash)]
 pub enum NodeCategory {
     IO,
@@ -250,10 +240,10 @@ impl NodeDataTrait for MyNodeData {
     // node graph library.
     fn bottom_ui(
         &self,
-        ui: &mut egui::Ui,
-        node_id: NodeId,
+        _ui: &mut egui::Ui,
+        _node_id: NodeId,
         _graph: &Graph<MyNodeData, ImageType, MyValueType>,
-        user_state: &mut Self::UserState,
+        _user_state: &mut Self::UserState,
     ) -> Vec<NodeResponse<MyResponse, MyNodeData>>
     where
         MyResponse: UserResponseTrait,
@@ -263,7 +253,7 @@ impl NodeDataTrait for MyNodeData {
         // the value stored in the global user state, and draw different button
         // UIs based on that.
 
-        let mut responses = vec![];
+        let responses = vec![];
         // let is_active = user_state
         //     .active_node
         //     .map(|id| id == node_id)
@@ -329,12 +319,12 @@ impl WidgetValueTrait for MyValueType {
         // This trait is used to tell the library which UI to display for the
         // inline parameter widgets.
         match self {
-            MyValueType::RGB { value } => {
+            MyValueType::RGB { value: _ } => {
                 ui.horizontal(|ui| {
                     ui.label(param_name);
                 });
             }
-            MyValueType::Alpha { value } => {
+            MyValueType::Alpha { value: _ } => {
                 ui.horizontal(|ui| {
                     ui.label(param_name);
                 });

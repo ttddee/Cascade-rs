@@ -1,13 +1,13 @@
 #![allow(clippy::eq_op)]
 
-use egui_node_graph::{GraphEditorState, NodeResponse};
+use egui_node_graph::GraphEditorState;
 use egui_winit_vulkano::{egui, Gui, GuiConfig};
 use vulkano_util::{
     context::{VulkanoConfig, VulkanoContext},
     window::{VulkanoWindows, WindowDescriptor, WindowMode},
 };
 use winit::{
-    event::{Event, MouseScrollDelta, WindowEvent},
+    event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
 };
 
@@ -134,7 +134,7 @@ pub fn main() {
                     csc_ui::properties_panel::build_properties_panel(&ctx, &mut graph_editor_state);
 
                     // -------- Node Graph
-                    let graph_response = egui::TopBottomPanel::bottom("nodegraph_panel")
+                    let _graph_response = egui::TopBottomPanel::bottom("nodegraph_panel")
                         .min_height(400.)
                         .resizable(true)
                         .show(&ctx, |ui| {
@@ -146,18 +146,18 @@ pub fn main() {
                             )
                         })
                         .inner;
-                    for node_response in graph_response.node_responses {
-                        // Here, we ignore all other graph events. But you may find
-                        // some use for them. For example, by playing a sound when a new
-                        // connection is created
-                        // if let NodeResponse::User(user_event) = node_response {
-                        //     match user_event {
-                        //         MyResponse::SetActiveNode(node) => user_state.active_node = Some(node),
-                        //         MyResponse::ClearActiveNode => user_state.active_node = None,
-                        //     }
-                        // }
-                        //if let NodeResponse::User()
-                    }
+                    //for node_response in graph_response.node_responses {
+                    // Here, we ignore all other graph events. But you may find
+                    // some use for them. For example, by playing a sound when a new
+                    // connection is created
+                    // if let NodeResponse::User(user_event) = node_response {
+                    //     match user_event {
+                    //         MyResponse::SetActiveNode(node) => user_state.active_node = Some(node),
+                    //         MyResponse::ClearActiveNode => user_state.active_node = None,
+                    //     }
+                    // }
+                    //if let NodeResponse::User()
+                    //}
 
                     // if let Some(node) = user_state.active_node {
                     //     if graph_editor_state.graph.nodes.contains_key(node) {

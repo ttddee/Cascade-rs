@@ -1,6 +1,6 @@
 use std::ops::RangeInclusive;
 
-use egui::{SidePanel, Slider};
+use egui::SidePanel;
 
 use egui_node_graph::GraphEditorState;
 
@@ -20,7 +20,7 @@ pub fn build_properties_panel(
 ) {
     SidePanel::right("properties_panel")
         .default_width(450.)
-        .show(&ctx, |ui| {
+        .show(ctx, |ui| {
             if let Some(node_id) = graph_editor_state.active_node {
                 let active_node = &mut graph_editor_state.graph.nodes[node_id];
                 let node_type = active_node.user_data.node_type;

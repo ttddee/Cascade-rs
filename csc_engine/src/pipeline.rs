@@ -305,7 +305,7 @@ impl RenderPipeline {
         )
         .unwrap();
 
-        let mut previous_frame_end = Some(
+        let mut _previous_frame_end = Some(
             uploads
                 .build()
                 .unwrap()
