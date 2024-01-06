@@ -14,6 +14,7 @@ use winit::{
 use csc_core::graph_model::MyGraphState;
 use csc_core::node_model::{AllMyNodeTemplates, ImageType, MyNodeData, MyValueType, NodeType};
 use csc_engine::pipeline::RenderPipeline;
+use csc_ui::{main_menu, properties_panel};
 
 pub fn main() {
     // Winit event loop
@@ -127,11 +128,9 @@ pub fn main() {
                 gui.immediate_ui(|gui| {
                     let ctx = gui.context();
                     egui::TopBottomPanel::top("main_menu").show(&ctx, |ui| {
-                        egui::menu::bar(ui, |ui| {
-                            egui::widgets::global_dark_light_mode_switch(ui);
-                        });
+                        main_menu::build_main_menu(ui);
                     });
-                    csc_ui::properties_panel::build_properties_panel(&ctx, &mut graph_editor_state);
+                    properties_panel::build_properties_panel(&ctx, &mut graph_editor_state);
 
                     // -------- Node Graph
                     let _graph_response = egui::TopBottomPanel::bottom("nodegraph_panel")
