@@ -19,8 +19,9 @@ pub fn build_properties_panel(
     >,
 ) {
     SidePanel::right("properties_panel")
-        .default_width(450.)
+        .default_width(300.)
         .show(ctx, |ui| {
+            ui.separator();
             if let Some(node_id) = graph_editor_state.active_node {
                 let active_node = &mut graph_editor_state.graph.nodes[node_id];
                 let node_type = active_node.user_data.node_type;
@@ -31,7 +32,7 @@ pub fn build_properties_panel(
                     egui::ScrollArea::vertical().show(ui, |ui| {
                         egui::Grid::new("properties_grid")
                             .num_columns(2)
-                            .spacing([40.0, 4.0])
+                            .spacing([40.0, 8.0])
                             .striped(true)
                             .show(ui, |ui| {
                                 for property in &mut active_node.user_data.node_properties {

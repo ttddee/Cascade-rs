@@ -134,7 +134,7 @@ pub fn main() {
 
                     // -------- Node Graph
                     let _graph_response = egui::TopBottomPanel::bottom("nodegraph_panel")
-                        .min_height(400.)
+                        .default_height(400.)
                         .resizable(true)
                         .show(&ctx, |ui| {
                             graph_editor_state.draw_graph_editor(
