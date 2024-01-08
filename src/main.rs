@@ -14,7 +14,7 @@ use winit::{
 use csc_core::graph_model::MyGraphState;
 use csc_core::node_model::{AllMyNodeTemplates, ImageType, MyNodeData, MyValueType, NodeType};
 use csc_engine::pipeline::RenderPipeline;
-use csc_ui::{main_menu, properties_panel};
+use csc_ui::{main_menu, node_graph, properties_panel};
 
 pub fn main() {
     // Winit event loop
@@ -70,7 +70,7 @@ pub fn main() {
         match event {
             Event::WindowEvent { event, window_id } if window_id == renderer.window().id() => {
                 // Update egui integration so the UI works!
-                let _pass_events_to_game = !gui.update(&event);
+                let _pass_events_to_app = !gui.update(&event);
                 match event {
                     WindowEvent::Resized(_) => {
                         renderer.resize();
@@ -81,46 +81,7 @@ pub fn main() {
                     WindowEvent::CloseRequested => {
                         *control_flow = ControlFlow::Exit;
                     }
-                    WindowEvent::KeyboardInput {
-                        device_id: _,
-                        input: _,
-                        is_synthetic: false,
-                    } => {
-                        // if state == ElementState::Pressed && !event.repeat {
-                        //     match event.key_without_modifiers().as_ref() {
-                        //         Key::Character("1") => {
-                        //             if modifiers.shift_key() {
-                        //                 println!("Shift + 1 | logical_key: {:?}", event.logical_key);
-                        //             } else {
-                        //                 println!("1");
-                        //             }
-                        //         }
-                        //         _ => (),
-                        //     }
-                        // }
-                    }
-                    // WindowEvent::MouseInput { device_id: _, state: _, button, modifiers: _} => {
-                    //     //println!("Click on {:?} button", button);
-                    // }
-                    // WindowEvent::MouseWheel { device_id: _, delta, phase: _, modifiers: _ } => {
-                    //     match delta {
-                    //         MouseScrollDelta::LineDelta(_, y) => {
-                    //             //println!("Y Delta {:?}", y);
-                    //             if y > 0.0 {
-                    //                 zoom += 0.1;
-                    //             }
-                    //             else {
-                    //                 zoom -= 0.1;
-                    //             }
-                    //             zoom = zoom.max(-5.0);
-                    //             zoom = zoom.min(5.0);
-                    //         }
-                    //         _ => (),
-                    //     }
-                    //     //println!("{:?}", delta);
-
-                    // }
-                    _ => (),
+                    _ => {}
                 }
             }
             Event::RedrawRequested(window_id) if window_id == window_id => {
@@ -132,49 +93,7 @@ pub fn main() {
                     });
                     properties_panel::build_properties_panel(&ctx, &mut graph_editor_state);
 
-                    // -------- Node Graph
-                    let _graph_response = egui::TopBottomPanel::bottom("nodegraph_panel")
-                        .default_height(400.)
-                        .resizable(true)
-                        .show(&ctx, |ui| {
-                            graph_editor_state.draw_graph_editor(
-                                ui,
-                                AllMyNodeTemplates,
-                                &mut user_state,
-                                Vec::default(),
-                            )
-                        })
-                        .inner;
-                    //for node_response in graph_response.node_responses {
-                    // Here, we ignore all other graph events. But you may find
-                    // some use for them. For example, by playing a sound when a new
-                    // connection is created
-                    // if let NodeResponse::User(user_event) = node_response {
-                    //     match user_event {
-                    //         MyResponse::SetActiveNode(node) => user_state.active_node = Some(node),
-                    //         MyResponse::ClearActiveNode => user_state.active_node = None,
-                    //     }
-                    // }
-                    //if let NodeResponse::User()
-                    //}
-
-                    // if let Some(node) = user_state.active_node {
-                    //     if graph_editor_state.graph.nodes.contains_key(node) {
-                    //         // let text = match evaluate_node(&graph_editor_state.graph, node, &mut HashMap::new()) {
-                    //         //     Ok(value) => format!("The result is: {:?}", value),
-                    //         //     Err(err) => format!("Execution error: {}", err),
-                    //         // };
-                    //         // ctx.debug_painter().text(
-                    //         //     egui::pos2(10.0, 35.0),
-                    //         //     egui::Align2::LEFT_TOP,
-                    //         //     text,
-                    //         //     TextStyle::Button.resolve(&ctx.style()),
-                    //         //     egui::Color32::WHITE,
-                    //         // );
-                    //     } else {
-                    //         user_state.active_node = None;
-                    //     }
-                    // }
+                    node_graph::build_node_graph(ctx, &mut graph_editor_state, &mut user_state)
                 });
                 // Render
                 // Acquire swapchain future
