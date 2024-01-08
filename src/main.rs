@@ -14,13 +14,13 @@ use winit::{
 use csc_core::graph_model::NodeGraphState;
 use csc_core::node_model::{ImageType, MyNodeData, MyValueType, NodeType};
 use csc_engine::pipeline::RenderPipeline;
-use csc_ui::{main_menu, node_graph, properties_panel};
+use csc_ui::{main_menu, node_graph, properties_panel, style::load_style};
 
 pub fn main() {
     // Winit event loop
     let event_loop = EventLoop::new();
     // Vulkano context
-    let context = VulkanoContext::new(VulkanoConfig::default());
+    let vulkano_context = VulkanoContext::new(VulkanoConfig::default());
     // Vulkano windows (create one)
     let mut windows = VulkanoWindows::default();
     let window_descriptor = WindowDescriptor {
@@ -29,18 +29,18 @@ pub fn main() {
         mode: WindowMode::Windowed,
         ..Default::default()
     };
-    windows.create_window(&event_loop, &context, &window_descriptor, |ci| {
+    windows.create_window(&event_loop, &vulkano_context, &window_descriptor, |ci| {
         ci.image_format = vulkano::format::Format::B8G8R8A8_UNORM;
         ci.min_image_count = ci.min_image_count.max(2);
     });
     // Create the rendering pipeline
     let mut gui_pipeline = RenderPipeline::new(
-        context.graphics_queue().clone(),
+        vulkano_context.graphics_queue().clone(),
         windows
             .get_primary_renderer_mut()
             .unwrap()
             .swapchain_format(),
-        context.memory_allocator().clone(),
+        vulkano_context.memory_allocator().clone(),
     );
     // Create gui subpass
     let mut gui = Gui::new_with_subpass(
@@ -62,7 +62,10 @@ pub fn main() {
         NodeType,
         NodeGraphState,
     > = GraphEditorState::new(1.0);
+
     let mut user_state = NodeGraphState::default();
+
+    load_style(&mut gui.context());
 
     // Create gui state (pass anything your state requires)
     event_loop.run(move |event, _, control_flow| {
