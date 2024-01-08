@@ -3,6 +3,6 @@
 /// the user. For this example, we use it to keep track of the 'active' node.
 #[derive(Default)]
 #[cfg_attr(feature = "persistence", derive(serde::Serialize, serde::Deserialize))]
-pub struct MyGraphState {
+pub struct NodeGraphState {
     //pub active_node: Option<NodeId>,
 }

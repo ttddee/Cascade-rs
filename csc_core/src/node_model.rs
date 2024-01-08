@@ -3,11 +3,11 @@ use std::vec;
 use std::borrow::Cow;
 
 use egui_node_graph::{
-    DataTypeTrait, Graph, InputParamKind, NodeDataTrait, NodeId, NodeResponse, NodeTemplateIter,
+    DataTypeTrait, Graph, InputParamKind, NodeDataTrait, NodeId, NodeTemplateIter,
     NodeTemplateTrait, UserResponseTrait, WidgetValueTrait,
 };
 
-use crate::graph_model::MyGraphState;
+use crate::graph_model::NodeGraphState;
 
 use crate::node_property::NodeProperty;
 
@@ -28,7 +28,7 @@ impl NodeCategory {
     }
 }
 
-// ------------------------------- MyDataType
+// ------------------------------- ImageType
 
 /// `DataType`s are what defines the possible range of connections when
 /// attaching two ports together. The graph UI will make sure to not allow
@@ -41,8 +41,8 @@ pub enum ImageType {
 }
 
 // A trait for the data types, to tell the library how to display them
-impl DataTypeTrait<MyGraphState> for ImageType {
-    fn data_type_color(&self, _user_state: &mut MyGraphState) -> ecolor::Color32 {
+impl DataTypeTrait<NodeGraphState> for ImageType {
+    fn data_type_color(&self, _user_state: &mut NodeGraphState) -> ecolor::Color32 {
         match self {
             ImageType::RGB => ecolor::Color32::from_rgb(229, 70, 61),
             ImageType::Alpha => ecolor::Color32::from_rgb(35, 114, 239),
@@ -111,7 +111,7 @@ impl NodeTemplateTrait for NodeType {
     type NodeData = MyNodeData;
     type DataType = ImageType;
     type ValueType = MyValueType;
-    type UserState = MyGraphState;
+    type UserState = NodeGraphState;
     type CategoryType = &'static str;
 
     fn node_finder_label(&self, _user_state: &mut Self::UserState) -> Cow<'_, str> {
@@ -174,7 +174,7 @@ impl NodeTemplateTrait for NodeType {
                 node_id,
                 name.to_string(),
                 ImageType::RGB,
-                MyValueType::RGB { value: 0.0 },
+                MyValueType::RGB,
                 InputParamKind::ConnectionOnly,
                 true,
             );
@@ -184,7 +184,7 @@ impl NodeTemplateTrait for NodeType {
                 node_id,
                 name.to_string(),
                 ImageType::Alpha,
-                MyValueType::Alpha { value: 0.0 },
+                MyValueType::Alpha,
                 InputParamKind::ConnectionOnly,
                 true,
             );
@@ -229,55 +229,9 @@ pub struct MyNodeData {
 }
 impl NodeDataTrait for MyNodeData {
     type Response = MyResponse;
-    type UserState = MyGraphState;
+    type UserState = NodeGraphState;
     type DataType = ImageType;
     type ValueType = MyValueType;
-
-    // This method will be called when drawing each node. This allows adding
-    // extra ui elements inside the nodes. In this case, we create an "active"
-    // button which introduces the concept of having an active node in the
-    // graph. This is done entirely from user code with no modifications to the
-    // node graph library.
-    fn bottom_ui(
-        &self,
-        _ui: &mut egui::Ui,
-        _node_id: NodeId,
-        _graph: &Graph<MyNodeData, ImageType, MyValueType>,
-        _user_state: &mut Self::UserState,
-    ) -> Vec<NodeResponse<MyResponse, MyNodeData>>
-    where
-        MyResponse: UserResponseTrait,
-    {
-        // This logic is entirely up to the user. In this case, we check if the
-        // current node we're drawing is the active one, by comparing against
-        // the value stored in the global user state, and draw different button
-        // UIs based on that.
-
-        let responses = vec![];
-        // let is_active = user_state
-        //     .active_node
-        //     .map(|id| id == node_id)
-        //     .unwrap_or(false);
-
-        // Pressing the button will emit a custom user response to either set,
-        // or clear the active node. These responses do nothing by themselves,
-        // the library only makes the responses available to you after the graph
-        // has been drawn. See below at the update method for an example.
-        // if !is_active {
-        //     if ui.button("👁 Set active").clicked() {
-        //         responses.push(NodeResponse::User(MyResponse::SetActiveNode(node_id)));
-        //     }
-        // } else {
-        //     let button =
-        //         egui::Button::new(egui::RichText::new("👁 Active").color(egui::Color32::BLACK))
-        //             .fill(egui::Color32::GOLD);
-        //     if ui.add(button).clicked() {
-        //         responses.push(NodeResponse::User(MyResponse::ClearActiveNode));
-        //     }
-        // }
-
-        responses
-    }
 }
 
 // ------------------------------- MyValueType
@@ -292,39 +246,39 @@ impl NodeDataTrait for MyNodeData {
 #[derive(Copy, Clone, Debug)]
 #[cfg_attr(feature = "persistence", derive(serde::Serialize, serde::Deserialize))]
 pub enum MyValueType {
-    RGB { value: f32 },
-    Alpha { value: f32 },
+    RGB,
+    Alpha,
 }
 
 impl Default for MyValueType {
     fn default() -> Self {
         // NOTE: This is just a dummy `Default` implementation. The library
         // requires it to circumvent some internal borrow checker issues.
-        Self::RGB { value: 0.0 }
+        Self::RGB
     }
 }
 
 impl WidgetValueTrait for MyValueType {
     type Response = MyResponse;
-    type UserState = MyGraphState;
+    type UserState = NodeGraphState;
     type NodeData = MyNodeData;
     fn value_widget(
         &mut self,
         param_name: &str,
         _node_id: NodeId,
         ui: &mut egui::Ui,
-        _user_state: &mut MyGraphState,
+        _user_state: &mut NodeGraphState,
         _node_data: &MyNodeData,
     ) -> Vec<MyResponse> {
         // This trait is used to tell the library which UI to display for the
         // inline parameter widgets.
         match self {
-            MyValueType::RGB { value: _ } => {
+            MyValueType::RGB {} => {
                 ui.horizontal(|ui| {
                     ui.label(param_name);
                 });
             }
-            MyValueType::Alpha { value: _ } => {
+            MyValueType::Alpha {} => {
                 ui.horizontal(|ui| {
                     ui.label(param_name);
                 });

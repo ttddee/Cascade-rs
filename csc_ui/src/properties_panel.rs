@@ -4,13 +4,19 @@ use egui::SidePanel;
 
 use egui_node_graph::GraphEditorState;
 
-use csc_core::graph_model::MyGraphState;
+use csc_core::graph_model::NodeGraphState;
 use csc_core::node_model::{ImageType, MyNodeData, MyValueType, NodeType};
 use csc_core::node_property::NodeProperty;
 
 pub fn build_properties_panel(
     context: &egui::Context,
-    graph_state: &mut GraphEditorState<MyNodeData, ImageType, MyValueType, NodeType, MyGraphState>,
+    graph_state: &mut GraphEditorState<
+        MyNodeData,
+        ImageType,
+        MyValueType,
+        NodeType,
+        NodeGraphState,
+    >,
 ) {
     SidePanel::right("properties_panel")
         .default_width(300.)

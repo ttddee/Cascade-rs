@@ -1,14 +1,20 @@
 use egui_node_graph::GraphEditorState;
 
 use csc_core::{
-    graph_model::MyGraphState,
+    graph_model::NodeGraphState,
     node_model::{AllNodeTemplates, ImageType, MyNodeData, MyValueType, NodeType},
 };
 
 pub fn build_node_graph(
     context: &egui::Context,
-    graph_state: &mut GraphEditorState<MyNodeData, ImageType, MyValueType, NodeType, MyGraphState>,
-    user_state: &mut MyGraphState,
+    graph_state: &mut GraphEditorState<
+        MyNodeData,
+        ImageType,
+        MyValueType,
+        NodeType,
+        NodeGraphState,
+    >,
+    user_state: &mut NodeGraphState,
 ) {
     let _graph_response = egui::TopBottomPanel::bottom("nodegraph_panel")
         .default_height(400.)

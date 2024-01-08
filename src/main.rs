@@ -11,7 +11,7 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
 };
 
-use csc_core::graph_model::MyGraphState;
+use csc_core::graph_model::NodeGraphState;
 use csc_core::node_model::{ImageType, MyNodeData, MyValueType, NodeType};
 use csc_engine::pipeline::RenderPipeline;
 use csc_ui::{main_menu, node_graph, properties_panel};
@@ -60,9 +60,9 @@ pub fn main() {
         ImageType,
         MyValueType,
         NodeType,
-        MyGraphState,
+        NodeGraphState,
     > = GraphEditorState::new(1.0);
-    let mut user_state = MyGraphState::default();
+    let mut user_state = NodeGraphState::default();
 
     // Create gui state (pass anything your state requires)
     event_loop.run(move |event, _, control_flow| {
