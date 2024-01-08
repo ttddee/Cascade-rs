@@ -1,7 +1,7 @@
 #![allow(clippy::eq_op)]
 
 use egui_node_graph::GraphEditorState;
-use egui_winit_vulkano::{egui, Gui, GuiConfig};
+use egui_winit_vulkano::{Gui, GuiConfig};
 use vulkano_util::{
     context::{VulkanoConfig, VulkanoContext},
     window::{VulkanoWindows, WindowDescriptor, WindowMode},
@@ -12,7 +12,7 @@ use winit::{
 };
 
 use csc_core::graph_model::MyGraphState;
-use csc_core::node_model::{AllMyNodeTemplates, ImageType, MyNodeData, MyValueType, NodeType};
+use csc_core::node_model::{ImageType, MyNodeData, MyValueType, NodeType};
 use csc_engine::pipeline::RenderPipeline;
 use csc_ui::{main_menu, node_graph, properties_panel};
 
@@ -55,7 +55,7 @@ pub fn main() {
         GuiConfig::default(),
     );
 
-    let mut graph_editor_state: GraphEditorState<
+    let mut graph_state: GraphEditorState<
         MyNodeData,
         ImageType,
         MyValueType,
@@ -88,12 +88,12 @@ pub fn main() {
                 // Set immediate UI in redraw here
                 gui.immediate_ui(|gui| {
                     let ctx = gui.context();
-                    egui::TopBottomPanel::top("main_menu").show(&ctx, |ui| {
-                        main_menu::build_main_menu(ui);
-                    });
-                    properties_panel::build_properties_panel(&ctx, &mut graph_editor_state);
 
-                    node_graph::build_node_graph(ctx, &mut graph_editor_state, &mut user_state)
+                    main_menu::build_main_menu(&ctx);
+
+                    properties_panel::build_properties_panel(&ctx, &mut graph_state);
+
+                    node_graph::build_node_graph(&ctx, &mut graph_state, &mut user_state)
                 });
                 // Render
                 // Acquire swapchain future

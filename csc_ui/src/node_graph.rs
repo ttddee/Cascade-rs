@@ -2,19 +2,19 @@ use egui_node_graph::GraphEditorState;
 
 use csc_core::{
     graph_model::MyGraphState,
-    node_model::{AllMyNodeTemplates, ImageType, MyNodeData, MyValueType, NodeType},
+    node_model::{AllNodeTemplates, ImageType, MyNodeData, MyValueType, NodeType},
 };
 
 pub fn build_node_graph(
-    context: egui::Context,
+    context: &egui::Context,
     graph_state: &mut GraphEditorState<MyNodeData, ImageType, MyValueType, NodeType, MyGraphState>,
     user_state: &mut MyGraphState,
 ) {
     let _graph_response = egui::TopBottomPanel::bottom("nodegraph_panel")
         .default_height(400.)
         .resizable(true)
-        .show(&context, |ui| {
-            graph_state.draw_graph_editor(ui, AllMyNodeTemplates, user_state, Vec::default())
+        .show(context, |ui| {
+            graph_state.draw_graph_editor(ui, AllNodeTemplates, user_state, Vec::default())
         })
         .inner;
     //for node_response in graph_response.node_responses {

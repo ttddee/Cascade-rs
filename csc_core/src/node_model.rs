@@ -351,8 +351,8 @@ impl UserResponseTrait for MyResponse {}
 
 // ------------------------------- AllMyNodeTemplates
 
-pub struct AllMyNodeTemplates;
-impl NodeTemplateIter for AllMyNodeTemplates {
+pub struct AllNodeTemplates;
+impl NodeTemplateIter for AllNodeTemplates {
     type Item = NodeType;
 
     fn all_kinds(&self) -> Vec<Self::Item> {

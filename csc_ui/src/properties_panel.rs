@@ -9,21 +9,15 @@ use csc_core::node_model::{ImageType, MyNodeData, MyValueType, NodeType};
 use csc_core::node_property::NodeProperty;
 
 pub fn build_properties_panel(
-    ctx: &egui::Context,
-    graph_editor_state: &mut GraphEditorState<
-        MyNodeData,
-        ImageType,
-        MyValueType,
-        NodeType,
-        MyGraphState,
-    >,
+    context: &egui::Context,
+    graph_state: &mut GraphEditorState<MyNodeData, ImageType, MyValueType, NodeType, MyGraphState>,
 ) {
     SidePanel::right("properties_panel")
         .default_width(300.)
-        .show(ctx, |ui| {
+        .show(context, |ui| {
             ui.separator();
-            if let Some(node_id) = graph_editor_state.active_node {
-                let active_node = &mut graph_editor_state.graph.nodes[node_id];
+            if let Some(node_id) = graph_state.active_node {
+                let active_node = &mut graph_state.graph.nodes[node_id];
                 let node_type = active_node.user_data.node_type;
                 if active_node.user_data.node_type == NodeType::Blur {
                     ui.label(egui::RichText::new(node_type.name()).strong());
