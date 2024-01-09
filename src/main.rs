@@ -14,7 +14,11 @@ use winit::{
 use csc_core::graph_model::NodeGraphState;
 use csc_core::node_model::{ImageType, MyNodeData, MyValueType, NodeType};
 use csc_engine::pipeline::RenderPipeline;
-use csc_ui::{main_menu, node_graph, properties_panel, style::load_style};
+use csc_ui::{
+    main_menu, node_graph,
+    properties_panel::{self, PropertiesPanel},
+    style::load_style,
+};
 
 pub fn main() {
     // Winit event loop
@@ -65,6 +69,8 @@ pub fn main() {
 
     let mut user_state = NodeGraphState::default();
 
+    let mut properties_panel = PropertiesPanel::default();
+
     load_style(&mut gui.context());
 
     // Create gui state (pass anything your state requires)
@@ -94,7 +100,7 @@ pub fn main() {
 
                     main_menu::build_main_menu(&ctx);
 
-                    properties_panel::build_properties_panel(&ctx, &mut graph_state);
+                    properties_panel.show(&ctx, &mut graph_state);
 
                     node_graph::build_node_graph(&ctx, &mut graph_state, &mut user_state)
                 });

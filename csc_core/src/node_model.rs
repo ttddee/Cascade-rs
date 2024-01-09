@@ -139,7 +139,7 @@ impl NodeTemplateTrait for NodeType {
                     0,
                 ),
             ],
-            NodeType::Read => vec![NodeProperty::new_string_list()],
+            NodeType::Read => vec![NodeProperty::new_path_list()],
             NodeType::Write => vec![NodeProperty::new_float(
                 "Intensity".to_string(),
                 1.0,

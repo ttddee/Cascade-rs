@@ -1,8 +1,10 @@
+use std::path::PathBuf;
+
 pub enum NodeProperty {
     Float(NumberData<f32>),
     Int(NumberData<i32>),
     Choice(ChoiceData),
-    StringList(StringListData),
+    PathList(PathListData),
 }
 
 impl NodeProperty {
@@ -34,10 +36,10 @@ impl NodeProperty {
         })
     }
 
-    pub fn new_string_list() -> Self {
-        NodeProperty::StringList(StringListData {
+    pub fn new_path_list() -> Self {
+        NodeProperty::PathList(PathListData {
             index: 0,
-            list: Vec::<String>::new(),
+            list: Vec::<PathBuf>::new(),
         })
     }
 }
@@ -92,12 +94,12 @@ impl ChoiceData {
     }
 }
 
-pub struct StringListData {
+pub struct PathListData {
     index: usize,
-    list: Vec<String>,
+    list: Vec<PathBuf>,
 }
 
-impl StringListData {
+impl PathListData {
     pub fn index(&self) -> &usize {
         &self.index
     }
@@ -106,11 +108,15 @@ impl StringListData {
         self.index = index;
     }
 
-    pub fn current_entry(&self) -> &String {
+    pub fn current_entry(&self) -> &PathBuf {
         &self.list[self.index]
     }
 
-    pub fn add(&mut self, entry: String) {
+    pub fn add(&mut self, entry: PathBuf) {
         self.list.push(entry);
+    }
+
+    pub fn list(&self) -> &Vec<PathBuf> {
+        &self.list
     }
 }
