@@ -2,50 +2,42 @@ pub enum NodeProperty {
     Float(NumberData<f32>),
     Int(NumberData<i32>),
     Choice(ChoiceData),
+    StringList(StringListData),
 }
 
 impl NodeProperty {
-    pub fn new_float(
-        property_name: String,
-        minimum: f32,
-        maximum: f32,
-        step_size: f32,
-        initial_value: f32,
-    ) -> Self {
+    pub fn new_float(name: String, min: f32, max: f32, step: f32, value: f32) -> Self {
         NodeProperty::Float(NumberData {
-            name: property_name,
-            min: minimum,
-            max: maximum,
-            step: step_size,
-            value: initial_value,
+            name,
+            min,
+            max,
+            step,
+            value,
         })
     }
 
-    pub fn new_int(
-        property_name: String,
-        minimum: i32,
-        maximum: i32,
-        step_size: i32,
-        initial_value: i32,
-    ) -> Self {
+    pub fn new_int(name: String, min: i32, max: i32, step: i32, value: i32) -> Self {
         NodeProperty::Int(NumberData {
-            name: property_name,
-            min: minimum,
-            max: maximum,
-            step: step_size,
-            value: initial_value,
+            name,
+            min,
+            max,
+            step,
+            value,
         })
     }
 
-    pub fn new_choice(
-        property_name: String,
-        choices_list: Vec<String>,
-        initial_index: usize,
-    ) -> Self {
+    pub fn new_choice(name: String, choices: Vec<String>, index: usize) -> Self {
         NodeProperty::Choice(ChoiceData {
-            name: property_name,
-            choices: choices_list,
-            index: initial_index,
+            name,
+            choices,
+            index,
+        })
+    }
+
+    pub fn new_string_list() -> Self {
+        NodeProperty::StringList(StringListData {
+            index: 0,
+            list: Vec::<String>::new(),
         })
     }
 }
@@ -97,5 +89,28 @@ impl ChoiceData {
 
     pub fn index(&mut self) -> &mut usize {
         &mut self.index
+    }
+}
+
+pub struct StringListData {
+    index: usize,
+    list: Vec<String>,
+}
+
+impl StringListData {
+    pub fn index(&self) -> &usize {
+        &self.index
+    }
+
+    pub fn set_index(&mut self, index: usize) {
+        self.index = index;
+    }
+
+    pub fn current_entry(&self) -> &String {
+        &self.list[self.index]
+    }
+
+    pub fn add(&mut self, entry: String) {
+        self.list.push(entry);
     }
 }

@@ -13,9 +13,9 @@ use egui::Visuals;
 // FGMid:          #c5c5c5
 // FGLight:        #b9b9b9
 
-const COLOR_BG_DARK: Color32 = Color32::from_rgb(24, 27, 30);
-const COLOR_BG_MID: Color32 = Color32::from_rgb(29, 32, 36);
-const COLOR_BG_LIGHT: Color32 = Color32::from_rgb(40, 45, 49);
+pub const COLOR_BG_DARK: Color32 = Color32::from_rgb(24, 27, 30);
+pub const COLOR_BG_MID: Color32 = Color32::from_rgb(29, 32, 36);
+pub const COLOR_BG_LIGHT: Color32 = Color32::from_rgb(40, 45, 49);
 
 pub fn load_style(context: &mut egui::Context) {
     let visuals = Visuals {
