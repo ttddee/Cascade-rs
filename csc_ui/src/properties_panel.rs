@@ -1,9 +1,10 @@
+use std::ffi::OsStr;
 use std::ops::RangeInclusive;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use egui::{SidePanel, Ui};
 
-use egui_file::{FileDialog, Filter};
+use egui_file::FileDialog;
 use egui_node_graph::GraphEditorState;
 
 use csc_core::graph_model::NodeGraphState;
@@ -56,7 +57,7 @@ impl PropertiesPanel {
                                     self.show_choice_property(ui, data);
                                 }
                                 NodeProperty::PathList(data) => {
-                                    self.show_path_list_property(ui, data, &context);
+                                    self.show_path_list_property(ui, data, context);
                                 }
                                 _ => {}
                             }
@@ -92,11 +93,18 @@ impl PropertiesPanel {
         context: &egui::Context,
     ) {
         if ui.button("Load").clicked() {
-            let mut dialog = FileDialog::open_file(self.opened_file.clone());
+            let filter = Box::new({
+                move |path: &Path| -> bool {
+                    path.extension() == Some(OsStr::new("png"))
+                        || path.extension() == Some(OsStr::new("jpg"))
+                }
+            });
+
+            let mut dialog =
+                FileDialog::open_file(self.opened_file.clone()).show_files_filter(filter);
             dialog.open();
             self.open_file_dialog = Some(dialog);
         }
-
         if let Some(dialog) = &mut self.open_file_dialog {
             if dialog.show(context).selected() {
                 if let Some(file) = dialog.path() {

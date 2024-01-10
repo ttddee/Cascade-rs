@@ -14,11 +14,7 @@ use winit::{
 use csc_core::graph_model::NodeGraphState;
 use csc_core::node_model::{ImageType, MyNodeData, MyValueType, NodeType};
 use csc_engine::pipeline::RenderPipeline;
-use csc_ui::{
-    main_menu, node_graph,
-    properties_panel::{self, PropertiesPanel},
-    style::load_style,
-};
+use csc_ui::{main_menu, node_graph, properties_panel::PropertiesPanel, style::load_style};
 
 pub fn main() {
     // Winit event loop
