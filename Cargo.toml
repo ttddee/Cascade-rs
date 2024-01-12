@@ -33,8 +33,9 @@ winit = "0.28.2"
 egui_winit_vulkano = "0.27.0"
 vulkano = "0.34.1"
 vulkano-util = "0.34.1"
-egui_node_graph = { path = "../egui_node_graph/egui_node_graph" }
+egui_node_graph = { path = "../egui_node_graph/egui_node_graph"}
 egui_file = "0.13.0"
+egui_dock = { git="https://github.com/Adanos020/egui_dock", rev="fae7fbc9483ed62fd982c88201a7f8f1b4563559" }
 anyhow = "1.0"
 
 [workspace.dev-dependencies]

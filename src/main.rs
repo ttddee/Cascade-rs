@@ -14,7 +14,9 @@ use winit::{
 use csc_core::graph_model::NodeGraphState;
 use csc_core::node_model::{ImageType, MyNodeData, MyValueType, NodeType};
 use csc_engine::pipeline::RenderPipeline;
-use csc_ui::{main_menu, node_graph, properties_panel::PropertiesPanel, style::load_style};
+use csc_ui::{
+    dock::MainDock, main_menu, node_graph, properties_panel::PropertiesPanel, style::load_style,
+};
 
 pub fn main() {
     // Winit event loop
@@ -34,7 +36,7 @@ pub fn main() {
         ci.min_image_count = ci.min_image_count.max(2);
     });
     // Create the rendering pipeline
-    let mut gui_pipeline = RenderPipeline::new(
+    let mut render_pipeline = RenderPipeline::new(
         vulkano_context.graphics_queue().clone(),
         windows
             .get_primary_renderer_mut()
@@ -43,11 +45,11 @@ pub fn main() {
         vulkano_context.memory_allocator().clone(),
     );
     // Create gui subpass
-    let mut gui = Gui::new_with_subpass(
+    let mut gui_subpass = Gui::new_with_subpass(
         &event_loop,
         windows.get_primary_renderer_mut().unwrap().surface(),
         windows.get_primary_renderer_mut().unwrap().graphics_queue(),
-        gui_pipeline.gui_pass(),
+        render_pipeline.gui_pass(),
         windows
             .get_primary_renderer_mut()
             .unwrap()
@@ -67,7 +69,9 @@ pub fn main() {
 
     let mut properties_panel = PropertiesPanel::default();
 
-    load_style(&mut gui.context());
+    let mut main_dock = MainDock::default();
+
+    load_style(&mut gui_subpass.context());
 
     // Create gui state (pass anything your state requires)
     event_loop.run(move |event, _, control_flow| {
@@ -75,7 +79,7 @@ pub fn main() {
         match event {
             Event::WindowEvent { event, window_id } if window_id == renderer.window().id() => {
                 // Update egui integration so the UI works!
-                let _pass_events_to_app = !gui.update(&event);
+                let _pass_events_to_app = !gui_subpass.update(&event);
                 match event {
                     WindowEvent::Resized(_) => {
                         renderer.resize();
@@ -91,23 +95,27 @@ pub fn main() {
             }
             Event::RedrawRequested(window_id) if window_id == window_id => {
                 // Set immediate UI in redraw here
-                gui.immediate_ui(|gui| {
-                    let ctx = gui.context();
+                gui_subpass.immediate_ui(|gui| {
+                    main_dock.show(gui.context());
 
-                    main_menu::build_main_menu(&ctx);
+                    // let ctx = gui.context();
 
-                    properties_panel.show(&ctx, &mut graph_state);
+                    // main_menu::build_main_menu(&ctx);
 
-                    node_graph::build_node_graph(&ctx, &mut graph_state, &mut user_state)
+                    // properties_panel.show(&ctx, &mut graph_state);
+
+                    // node_graph::build_node_graph(&ctx, &mut graph_state, &mut user_state)
                 });
                 // Render
                 // Acquire swapchain future
                 let before_future = renderer.acquire().unwrap();
                 // Render scene
-
                 // Render gui
-                let after_future =
-                    gui_pipeline.render(before_future, renderer.swapchain_image_view(), &mut gui);
+                let after_future = render_pipeline.render(
+                    before_future,
+                    renderer.swapchain_image_view(),
+                    &mut gui_subpass,
+                );
                 // Present swapchain
                 renderer.present(after_future, true);
             }

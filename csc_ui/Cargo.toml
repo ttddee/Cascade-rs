@@ -10,5 +10,6 @@ ecolor = { workspace = true }
 anyhow = { workspace = true }
 egui_node_graph = { workspace = true }
 egui_file = { workspace = true }
+egui_dock = { workspace = true }
 
 serde = { version = "1.0", optional = true }
