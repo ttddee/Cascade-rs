@@ -2,7 +2,7 @@ use std::{collections::HashSet, sync::Arc};
 
 use csc_core::{
     graph_model::NodeGraphState,
-    node_model::{CsImageType, MyNodeData, MyValueType, NodeType},
+    node_model::{AllNodeTemplates, CsImageType, MyNodeData, MyValueType, NodeType},
 };
 use egui::{load::SizedTexture, CentralPanel, Frame, ImageSource, Ui, WidgetText};
 use egui_dock::{AllowedSplits, DockArea, DockState, NodeIndex, Style, SurfaceIndex, TabViewer};
@@ -10,7 +10,7 @@ use egui_node_graph::GraphEditorState;
 use egui_winit_vulkano::Gui;
 use vulkano::image::view::ImageView;
 
-use crate::{node_graph, properties_panel::PropertiesPanel};
+use crate::properties_panel::PropertiesPanel;
 
 pub struct MainDock {
     context: DockContext,
@@ -43,17 +43,16 @@ impl MainDock {
     pub fn new(gui: &mut Gui, scene_image: Arc<ImageView>, scene_view_size: [u32; 2]) -> Self {
         let mut dock_state = DockState::new(vec!["Viewer".to_owned()]);
 
-        let [_, _] = dock_state.main_surface_mut().split_right(
+        let [a, _] = dock_state.main_surface_mut().split_below(
             NodeIndex::root(),
-            0.8,
-            vec!["Properties".to_owned()],
-        );
-
-        let [_, _] = dock_state.main_surface_mut().split_below(
-            NodeIndex::root(),
-            0.7,
+            0.65,
             vec!["Node Graph".to_owned()],
         );
+
+        let [_, _] =
+            dock_state
+                .main_surface_mut()
+                .split_right(a, 0.8, vec!["Properties".to_owned()]);
 
         let mut open_tabs = HashSet::new();
 
@@ -125,11 +124,12 @@ impl DockContext {
             });
     }
 
-    fn node_graph(&mut self) {
-        node_graph::build_node_graph(
-            &self.egui_context,
-            &mut self.graph_state,
+    fn node_graph(&mut self, ui: &mut Ui) {
+        let _graph_response = self.graph_state.draw_graph_editor(
+            ui,
+            AllNodeTemplates,
             &mut self.user_state,
+            Vec::default(),
         );
     }
 
@@ -149,7 +149,7 @@ impl TabViewer for DockContext {
     fn ui(&mut self, ui: &mut Ui, tab: &mut Self::Tab) {
         match tab.as_str() {
             "Viewer" => self.viewer(ui),
-            "Node Graph" => self.node_graph(),
+            "Node Graph" => self.node_graph(ui),
             "Properties" => self.properties_panel(ui),
             _ => {
                 ui.label(tab.as_str());
