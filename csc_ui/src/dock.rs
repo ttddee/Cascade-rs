@@ -1,7 +1,9 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, sync::Arc};
 
-use egui::{CentralPanel, Frame, Ui, WidgetText};
+use egui::{load::SizedTexture, CentralPanel, Frame, ImageSource, Ui, WidgetText};
 use egui_dock::{AllowedSplits, DockArea, DockState, NodeIndex, Style, SurfaceIndex, TabViewer};
+use egui_winit_vulkano::Gui;
+use vulkano::image::view::ImageView;
 
 pub struct MainDock {
     context: DockContext,
@@ -11,8 +13,6 @@ pub struct MainDock {
 impl MainDock {
     pub fn show(&mut self, context: egui::Context) {
         CentralPanel::default()
-            // When displaying a DockArea in another UI, it looks better
-            // to set inner margins to 0.
             .frame(Frame::central_panel(&context.style()).inner_margin(0.))
             .show(&context, |ui| {
                 let style = self
@@ -33,10 +33,7 @@ impl MainDock {
                     .show_inside(ui, &mut self.context);
             });
     }
-}
-
-impl Default for MainDock {
-    fn default() -> Self {
+    pub fn new(gui: &mut Gui, scene_image: Arc<ImageView>, scene_view_size: [u32; 2]) -> Self {
         let mut dock_state = DockState::new(vec!["Viewer".to_owned()]);
 
         let [_, _] = dock_state.main_surface_mut().split_right(
@@ -71,6 +68,8 @@ impl Default for MainDock {
             draggable_tabs: true,
             show_tab_name_on_hover: false,
             allowed_splits: AllowedSplits::default(),
+            scene_texture_id: gui.register_user_image_view(scene_image, Default::default()),
+            scene_view_size,
         };
 
         Self {
@@ -79,6 +78,7 @@ impl Default for MainDock {
         }
     }
 }
+
 struct DockContext {
     pub style: Option<Style>,
     open_tabs: HashSet<String>,
@@ -90,9 +90,26 @@ struct DockContext {
     allowed_splits: AllowedSplits,
     show_window_close: bool,
     show_window_collapse: bool,
+    scene_texture_id: egui::TextureId,
+    scene_view_size: [u32; 2],
 }
 
-impl DockContext {}
+impl DockContext {
+    fn viewer(&mut self, ui: &mut Ui) {
+        egui::Frame::none()
+            .inner_margin(0.)
+            .fill(egui::Color32::BLACK)
+            .show(ui, |ui| {
+                ui.image(ImageSource::Texture(SizedTexture::new(
+                    self.scene_texture_id,
+                    [
+                        self.scene_view_size[0] as f32,
+                        self.scene_view_size[1] as f32,
+                    ],
+                )));
+            });
+    }
+}
 
 impl TabViewer for DockContext {
     type Tab = String;
@@ -102,13 +119,12 @@ impl TabViewer for DockContext {
     }
 
     fn ui(&mut self, ui: &mut Ui, tab: &mut Self::Tab) {
-        // match tab.as_str() {
-        //     "Simple Demo" => self.simple_demo(ui),
-        //     "Style Editor" => self.style_editor(ui),
-        //     _ => {
-        //         ui.label(tab.as_str());
-        //     }
-        // }
+        match tab.as_str() {
+            "Viewer" => self.viewer(ui),
+            _ => {
+                ui.label(tab.as_str());
+            }
+        }
     }
 
     fn context_menu(

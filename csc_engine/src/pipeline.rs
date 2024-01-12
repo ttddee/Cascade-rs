@@ -41,7 +41,7 @@ use vulkano::{
 
 use crate::shaders;
 
-pub struct RenderPipeline {
+pub struct RenderPipelineOld {
     queue: Arc<Queue>,
     render_pass: Arc<RenderPass>,
     pipeline: Arc<GraphicsPipeline>,
@@ -53,7 +53,7 @@ pub struct RenderPipeline {
     command_buffer_allocator: Arc<StandardCommandBufferAllocator>,
 }
 
-impl RenderPipeline {
+impl RenderPipelineOld {
     pub fn new(
         queue: Arc<Queue>,
         image_format: vulkano::format::Format,

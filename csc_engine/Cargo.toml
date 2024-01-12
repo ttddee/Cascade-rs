@@ -9,3 +9,4 @@ vulkano-util = { workspace = true }
 egui_winit_vulkano = { workspace = true }
 vulkano-shaders = "0.34.0"
 png = "0.17.10"
+cgmath = { workspace = true }

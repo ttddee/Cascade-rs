@@ -37,6 +37,4 @@ egui_node_graph = { path = "../egui_node_graph/egui_node_graph"}
 egui_file = "0.13.0"
 egui_dock = { git="https://github.com/Adanos020/egui_dock", rev="fae7fbc9483ed62fd982c88201a7f8f1b4563559" }
 anyhow = "1.0"
-
-[workspace.dev-dependencies]
 cgmath = "0.18.0"

@@ -11,7 +11,7 @@ use crate::graph_model::NodeGraphState;
 
 use crate::node_property::NodeProperty;
 
-type MyGraph = Graph<MyNodeData, ImageType, MyValueType>;
+type MyGraph = Graph<MyNodeData, CsImageType, MyValueType>;
 
 #[derive(Clone, Copy, Eq, PartialEq, Hash)]
 pub enum NodeCategory {
@@ -35,24 +35,24 @@ impl NodeCategory {
 /// attaching incompatible datatypes.
 #[derive(PartialEq, Eq)]
 #[cfg_attr(feature = "persistence", derive(serde::Serialize, serde::Deserialize))]
-pub enum ImageType {
+pub enum CsImageType {
     RGB,
     Alpha,
 }
 
 // A trait for the data types, to tell the library how to display them
-impl DataTypeTrait<NodeGraphState> for ImageType {
+impl DataTypeTrait<NodeGraphState> for CsImageType {
     fn data_type_color(&self, _user_state: &mut NodeGraphState) -> ecolor::Color32 {
         match self {
-            ImageType::RGB => ecolor::Color32::from_rgb(229, 70, 61),
-            ImageType::Alpha => ecolor::Color32::from_rgb(35, 114, 239),
+            CsImageType::RGB => ecolor::Color32::from_rgb(229, 70, 61),
+            CsImageType::Alpha => ecolor::Color32::from_rgb(35, 114, 239),
         }
     }
 
     fn name(&self) -> Cow<'_, str> {
         match self {
-            ImageType::RGB => Cow::Borrowed("RGB"),
-            ImageType::Alpha => Cow::Borrowed("Alpha"),
+            CsImageType::RGB => Cow::Borrowed("RGB"),
+            CsImageType::Alpha => Cow::Borrowed("Alpha"),
         }
     }
 }
@@ -84,18 +84,18 @@ impl NodeType {
         }
     }
 
-    fn inputs(&self) -> Vec<ImageType> {
+    fn inputs(&self) -> Vec<CsImageType> {
         match self {
-            NodeType::Blur => vec![ImageType::RGB, ImageType::Alpha],
+            NodeType::Blur => vec![CsImageType::RGB, CsImageType::Alpha],
             NodeType::Read => vec![],
-            NodeType::Write => vec![ImageType::RGB, ImageType::Alpha],
+            NodeType::Write => vec![CsImageType::RGB, CsImageType::Alpha],
         }
     }
 
-    fn outputs(&self) -> Vec<ImageType> {
+    fn outputs(&self) -> Vec<CsImageType> {
         match self {
-            NodeType::Blur => vec![ImageType::RGB, ImageType::Alpha],
-            NodeType::Read => vec![ImageType::RGB, ImageType::Alpha],
+            NodeType::Blur => vec![CsImageType::RGB, CsImageType::Alpha],
+            NodeType::Read => vec![CsImageType::RGB, CsImageType::Alpha],
             NodeType::Write => vec![],
         }
     }
@@ -109,7 +109,7 @@ impl NodeType {
 // from the templates in the node finder
 impl NodeTemplateTrait for NodeType {
     type NodeData = MyNodeData;
-    type DataType = ImageType;
+    type DataType = CsImageType;
     type ValueType = MyValueType;
     type UserState = NodeGraphState;
     type CategoryType = &'static str;
@@ -167,7 +167,7 @@ impl NodeTemplateTrait for NodeType {
             graph.add_input_param(
                 node_id,
                 name.to_string(),
-                ImageType::RGB,
+                CsImageType::RGB,
                 MyValueType::RGB,
                 InputParamKind::ConnectionOnly,
                 true,
@@ -177,7 +177,7 @@ impl NodeTemplateTrait for NodeType {
             graph.add_input_param(
                 node_id,
                 name.to_string(),
-                ImageType::Alpha,
+                CsImageType::Alpha,
                 MyValueType::Alpha,
                 InputParamKind::ConnectionOnly,
                 true,
@@ -185,18 +185,18 @@ impl NodeTemplateTrait for NodeType {
         };
 
         let output_rgb = |graph: &mut MyGraph, name: &str| {
-            graph.add_output_param(node_id, name.to_string(), ImageType::RGB);
+            graph.add_output_param(node_id, name.to_string(), CsImageType::RGB);
         };
         let output_alpha = |graph: &mut MyGraph, name: &str| {
-            graph.add_output_param(node_id, name.to_string(), ImageType::Alpha);
+            graph.add_output_param(node_id, name.to_string(), CsImageType::Alpha);
         };
 
         let inputs = self.inputs();
         let iter = inputs.iter();
         for input in iter {
             match input {
-                ImageType::RGB => input_rgb(graph, "RGB"),
-                ImageType::Alpha => input_alpha(graph, "Alpha"),
+                CsImageType::RGB => input_rgb(graph, "RGB"),
+                CsImageType::Alpha => input_alpha(graph, "Alpha"),
             }
         }
 
@@ -204,8 +204,8 @@ impl NodeTemplateTrait for NodeType {
         let iter = outputs.iter();
         for output in iter {
             match output {
-                ImageType::RGB => output_rgb(graph, "RGB"),
-                ImageType::Alpha => output_alpha(graph, "Alpha"),
+                CsImageType::RGB => output_rgb(graph, "RGB"),
+                CsImageType::Alpha => output_alpha(graph, "Alpha"),
             }
         }
     }
@@ -224,7 +224,7 @@ pub struct MyNodeData {
 impl NodeDataTrait for MyNodeData {
     type Response = MyResponse;
     type UserState = NodeGraphState;
-    type DataType = ImageType;
+    type DataType = CsImageType;
     type ValueType = MyValueType;
 }
 

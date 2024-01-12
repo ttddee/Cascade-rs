@@ -2,14 +2,14 @@ use egui_node_graph::GraphEditorState;
 
 use csc_core::{
     graph_model::NodeGraphState,
-    node_model::{AllNodeTemplates, ImageType, MyNodeData, MyValueType, NodeType},
+    node_model::{AllNodeTemplates, CsImageType, MyNodeData, MyValueType, NodeType},
 };
 
 pub fn build_node_graph(
     context: &egui::Context,
     graph_state: &mut GraphEditorState<
         MyNodeData,
-        ImageType,
+        CsImageType,
         MyValueType,
         NodeType,
         NodeGraphState,

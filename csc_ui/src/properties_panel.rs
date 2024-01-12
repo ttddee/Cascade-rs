@@ -8,7 +8,7 @@ use egui_file::FileDialog;
 use egui_node_graph::GraphEditorState;
 
 use csc_core::graph_model::NodeGraphState;
-use csc_core::node_model::{ImageType, MyNodeData, MyValueType, NodeType};
+use csc_core::node_model::{CsImageType, MyNodeData, MyValueType, NodeType};
 use csc_core::node_property::{ChoiceData, NodeProperty, NumberData, PathListData};
 
 use crate::style::COLOR_BG_DARK;
@@ -31,7 +31,7 @@ impl PropertiesPanel {
         context: &egui::Context,
         graph_state: &mut GraphEditorState<
             MyNodeData,
-            ImageType,
+            CsImageType,
             MyValueType,
             NodeType,
             NodeGraphState,
