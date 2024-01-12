@@ -96,11 +96,11 @@ pub fn main() {
             Event::RedrawRequested(window_id) if window_id == window_id => {
                 // Set immediate UI in redraw here
                 gui_subpass.immediate_ui(|gui| {
+                    main_menu::build_main_menu(&gui.context());
+
                     main_dock.show(gui.context());
 
                     // let ctx = gui.context();
-
-                    // main_menu::build_main_menu(&ctx);
 
                     // properties_panel.show(&ctx, &mut graph_state);
 

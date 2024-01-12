@@ -37,23 +37,19 @@ impl MainDock {
 
 impl Default for MainDock {
     fn default() -> Self {
-        let mut dock_state =
-            DockState::new(vec!["Simple Demo".to_owned(), "Style Editor".to_owned()]);
-        dock_state.translations.tab_context_menu.eject_button = "Undock".to_owned();
-        let [a, b] = dock_state.main_surface_mut().split_left(
+        let mut dock_state = DockState::new(vec!["Viewer".to_owned()]);
+
+        let [_, _] = dock_state.main_surface_mut().split_right(
             NodeIndex::root(),
-            0.3,
-            vec!["Inspector".to_owned()],
+            0.8,
+            vec!["Properties".to_owned()],
         );
+
         let [_, _] = dock_state.main_surface_mut().split_below(
-            a,
+            NodeIndex::root(),
             0.7,
-            vec!["File Browser".to_owned(), "Asset Manager".to_owned()],
+            vec!["Node Graph".to_owned()],
         );
-        let [_, _] =
-            dock_state
-                .main_surface_mut()
-                .split_below(b, 0.5, vec!["Hierarchy".to_owned()]);
 
         let mut open_tabs = HashSet::new();
 
@@ -65,8 +61,6 @@ impl Default for MainDock {
             }
         }
         let context = DockContext {
-            title: "Hello".to_string(),
-            age: 24,
             style: None,
             open_tabs,
 
@@ -86,8 +80,6 @@ impl Default for MainDock {
     }
 }
 struct DockContext {
-    pub title: String,
-    pub age: u32,
     pub style: Option<Style>,
     open_tabs: HashSet<String>,
 
@@ -136,7 +128,8 @@ impl TabViewer for DockContext {
     }
 
     fn closeable(&mut self, tab: &mut Self::Tab) -> bool {
-        ["Inspector", "Style Editor"].contains(&tab.as_str())
+        //["Inspector", "Style Editor"].contains(&tab.as_str())
+        false
     }
 
     fn on_close(&mut self, tab: &mut Self::Tab) -> bool {
