@@ -1,9 +1,16 @@
 use std::{collections::HashSet, sync::Arc};
 
+use csc_core::{
+    graph_model::NodeGraphState,
+    node_model::{CsImageType, MyNodeData, MyValueType, NodeType},
+};
 use egui::{load::SizedTexture, CentralPanel, Frame, ImageSource, Ui, WidgetText};
 use egui_dock::{AllowedSplits, DockArea, DockState, NodeIndex, Style, SurfaceIndex, TabViewer};
+use egui_node_graph::GraphEditorState;
 use egui_winit_vulkano::Gui;
-use vulkano::image::view::ImageView;
+use vulkano::image::{view::ImageView, ImageType};
+
+use crate::node_graph;
 
 pub struct MainDock {
     context: DockContext,
@@ -70,6 +77,9 @@ impl MainDock {
             allowed_splits: AllowedSplits::default(),
             scene_texture_id: gui.register_user_image_view(scene_image, Default::default()),
             scene_view_size,
+            egui_context: gui.context(),
+            graph_state: GraphEditorState::new(1.0),
+            user_state: NodeGraphState::default(),
         };
 
         Self {
@@ -92,6 +102,9 @@ struct DockContext {
     show_window_collapse: bool,
     scene_texture_id: egui::TextureId,
     scene_view_size: [u32; 2],
+    egui_context: egui::Context,
+    graph_state: GraphEditorState<MyNodeData, CsImageType, MyValueType, NodeType, NodeGraphState>,
+    user_state: NodeGraphState,
 }
 
 impl DockContext {
@@ -109,6 +122,14 @@ impl DockContext {
                 )));
             });
     }
+
+    fn node_graph(&mut self) {
+        node_graph::build_node_graph(
+            &self.egui_context,
+            &mut self.graph_state,
+            &mut self.user_state,
+        );
+    }
 }
 
 impl TabViewer for DockContext {
@@ -121,6 +142,7 @@ impl TabViewer for DockContext {
     fn ui(&mut self, ui: &mut Ui, tab: &mut Self::Tab) {
         match tab.as_str() {
             "Viewer" => self.viewer(ui),
+            "Node Graph" => self.node_graph(),
             _ => {
                 ui.label(tab.as_str());
             }
@@ -144,7 +166,6 @@ impl TabViewer for DockContext {
     }
 
     fn closeable(&mut self, tab: &mut Self::Tab) -> bool {
-        //["Inspector", "Style Editor"].contains(&tab.as_str())
         false
     }
 

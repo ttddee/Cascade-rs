@@ -23,12 +23,11 @@ use winit::{
 };
 
 use csc_core::graph_model::NodeGraphState;
-use csc_core::node_model::{CsImageType, MyNodeData, MyValueType, NodeType};
+use csc_core::node_model::{MyNodeData, MyValueType, NodeType};
 use csc_engine::renderer;
-use csc_engine::{pipeline::RenderPipelineOld, renderer::RenderPipeline};
+use csc_engine::renderer::RenderPipeline;
 use csc_ui::{
-    dock::MainDock, gui_state::GuiState, main_menu, node_graph, properties_panel::PropertiesPanel,
-    style::load_style,
+    dock::MainDock, main_menu, node_graph, properties_panel::PropertiesPanel, style::load_style,
 };
 
 pub fn main() {
@@ -121,21 +120,21 @@ pub fn main() {
     //     GuiConfig::default(),
     // );
 
-    let mut graph_state: GraphEditorState<
-        MyNodeData,
-        ImageType,
-        MyValueType,
-        NodeType,
-        NodeGraphState,
-    > = GraphEditorState::new(1.0);
+    // let mut graph_state: GraphEditorState<
+    //     MyNodeData,
+    //     ImageType,
+    //     MyValueType,
+    //     NodeType,
+    //     NodeGraphState,
+    // > = GraphEditorState::new(1.0);
 
-    let mut user_state = NodeGraphState::default();
+    // let mut user_state = NodeGraphState::default();
 
     let mut properties_panel = PropertiesPanel::default();
 
     let mut main_dock = MainDock::new(&mut gui, scene_image.clone(), scene_view_size);
 
-    //load_style(&mut gui_subpass.context());
+    load_style(&mut gui.context());
 
     // Create gui state (pass anything your state requires)
     event_loop.run(move |event, _, control_flow| {
