@@ -2,7 +2,7 @@ use std::ffi::OsStr;
 use std::ops::RangeInclusive;
 use std::path::{Path, PathBuf};
 
-use egui::{SidePanel, Ui};
+use egui::Ui;
 
 use egui_file::FileDialog;
 use egui_node_graph::GraphEditorState;
@@ -28,7 +28,8 @@ impl PropertiesPanel {
 
     pub fn show(
         &mut self,
-        context: &egui::Context,
+        ui: &mut Ui,
+        egui_context: &egui::Context,
         graph_state: &mut GraphEditorState<
             MyNodeData,
             CsImageType,
@@ -37,35 +38,33 @@ impl PropertiesPanel {
             NodeGraphState,
         >,
     ) {
-        SidePanel::right("properties_panel")
-            .default_width(300.)
-            .show(context, |ui| {
-                ui.separator();
-                if let Some(node_id) = graph_state.active_node {
-                    let active_node = &mut graph_state.graph.nodes[node_id];
-                    let node_type = active_node.user_data.node_type;
-                    ui.with_layout(egui::Layout::top_down(egui::Align::LEFT), |ui| {
-                        ui.label(egui::RichText::new(node_type.name()).strong());
-                        ui.separator();
+        egui::Frame::none().inner_margin(0.).show(ui, |ui| {
+            ui.separator();
+            if let Some(node_id) = graph_state.active_node {
+                let active_node = &mut graph_state.graph.nodes[node_id];
+                let node_type = active_node.user_data.node_type;
+                ui.with_layout(egui::Layout::top_down(egui::Align::LEFT), |ui| {
+                    ui.label(egui::RichText::new(node_type.name()).strong());
+                    ui.separator();
 
-                        for property in &mut active_node.user_data.node_properties {
-                            match property {
-                                NodeProperty::Float(data) => {
-                                    self.show_float_property(ui, data);
-                                }
-                                NodeProperty::Choice(data) => {
-                                    self.show_choice_property(ui, data);
-                                }
-                                NodeProperty::PathList(data) => {
-                                    self.show_path_list_property(ui, data, context);
-                                }
-                                _ => {}
+                    for property in &mut active_node.user_data.node_properties {
+                        match property {
+                            NodeProperty::Float(data) => {
+                                self.show_float_property(ui, data);
                             }
-                            ui.add_space(2.);
+                            NodeProperty::Choice(data) => {
+                                self.show_choice_property(ui, data);
+                            }
+                            NodeProperty::PathList(data) => {
+                                self.show_path_list_property(ui, data, egui_context);
+                            }
+                            _ => {}
                         }
-                    });
-                }
-            });
+                        ui.add_space(2.);
+                    }
+                });
+            }
+        });
     }
 
     fn show_float_property(&self, ui: &mut Ui, data: &mut NumberData<f32>) {

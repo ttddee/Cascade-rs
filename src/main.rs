@@ -2,7 +2,6 @@
 
 use std::sync::Arc;
 
-use egui_node_graph::GraphEditorState;
 use egui_winit_vulkano::{Gui, GuiConfig};
 use vulkano::{
     command_buffer::allocator::{
@@ -22,13 +21,9 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
 };
 
-use csc_core::graph_model::NodeGraphState;
-use csc_core::node_model::{MyNodeData, MyValueType, NodeType};
 use csc_engine::renderer;
 use csc_engine::renderer::RenderPipeline;
-use csc_ui::{
-    dock::MainDock, main_menu, node_graph, properties_panel::PropertiesPanel, style::load_style,
-};
+use csc_ui::{dock::MainDock, main_menu, style::load_style};
 
 pub fn main() {
     // Winit event loop
@@ -95,42 +90,6 @@ pub fn main() {
             memory: vulkano_context.memory_allocator().clone(),
         },
     );
-    // Create gui state (pass anything your state requires)
-    //let mut gui_state = GuiState::new(&mut gui, scene_image.clone(), scene_view_size);
-
-    // // Create the rendering pipeline
-    // let mut render_pipeline = RenderPipeline::new(
-    //     vulkano_context.graphics_queue().clone(),
-    //     windows
-    //         .get_primary_renderer_mut()
-    //         .unwrap()
-    //         .swapchain_format(),
-    //     vulkano_context.memory_allocator().clone(),
-    // );
-    // // Create gui subpass
-    // let mut gui_subpass = Gui::new_with_subpass(
-    //     &event_loop,
-    //     windows.get_primary_renderer_mut().unwrap().surface(),
-    //     windows.get_primary_renderer_mut().unwrap().graphics_queue(),
-    //     render_pipeline.gui_pass(),
-    //     windows
-    //         .get_primary_renderer_mut()
-    //         .unwrap()
-    //         .swapchain_format(),
-    //     GuiConfig::default(),
-    // );
-
-    // let mut graph_state: GraphEditorState<
-    //     MyNodeData,
-    //     ImageType,
-    //     MyValueType,
-    //     NodeType,
-    //     NodeGraphState,
-    // > = GraphEditorState::new(1.0);
-
-    // let mut user_state = NodeGraphState::default();
-
-    let mut properties_panel = PropertiesPanel::default();
 
     let mut main_dock = MainDock::new(&mut gui, scene_image.clone(), scene_view_size);
 
@@ -184,31 +143,6 @@ pub fn main() {
                     gui.draw_on_image(after_scene_draw, renderer.swapchain_image_view());
                 // Present swapchain
                 renderer.present(after_future, true);
-
-                // Set immediate UI in redraw here
-                // gui_subpass.immediate_ui(|gui| {
-                //     main_menu::build_main_menu(&gui.context());
-
-                //     main_dock.show(gui.context());
-
-                //     // let ctx = gui.context();
-
-                //     // properties_panel.show(&ctx, &mut graph_state);
-
-                //     // node_graph::build_node_graph(&ctx, &mut graph_state, &mut user_state)
-                // });
-                // // Render
-                // // Acquire swapchain future
-                // let before_future = renderer.acquire().unwrap();
-                // // Render scene
-                // // Render gui
-                // let after_future = render_pipeline.render(
-                //     before_future,
-                //     renderer.swapchain_image_view(),
-                //     &mut gui_subpass,
-                // );
-                // // Present swapchain
-                // renderer.present(after_future, true);
             }
             Event::MainEventsCleared => {
                 renderer.window().request_redraw();

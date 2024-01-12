@@ -8,9 +8,9 @@ use egui::{load::SizedTexture, CentralPanel, Frame, ImageSource, Ui, WidgetText}
 use egui_dock::{AllowedSplits, DockArea, DockState, NodeIndex, Style, SurfaceIndex, TabViewer};
 use egui_node_graph::GraphEditorState;
 use egui_winit_vulkano::Gui;
-use vulkano::image::{view::ImageView, ImageType};
+use vulkano::image::view::ImageView;
 
-use crate::node_graph;
+use crate::{node_graph, properties_panel::PropertiesPanel};
 
 pub struct MainDock {
     context: DockContext,
@@ -80,6 +80,7 @@ impl MainDock {
             egui_context: gui.context(),
             graph_state: GraphEditorState::new(1.0),
             user_state: NodeGraphState::default(),
+            properties_panel: PropertiesPanel::default(),
         };
 
         Self {
@@ -105,6 +106,7 @@ struct DockContext {
     egui_context: egui::Context,
     graph_state: GraphEditorState<MyNodeData, CsImageType, MyValueType, NodeType, NodeGraphState>,
     user_state: NodeGraphState,
+    properties_panel: PropertiesPanel,
 }
 
 impl DockContext {
@@ -130,6 +132,11 @@ impl DockContext {
             &mut self.user_state,
         );
     }
+
+    fn properties_panel(&mut self, ui: &mut Ui) {
+        self.properties_panel
+            .show(ui, &self.egui_context, &mut self.graph_state);
+    }
 }
 
 impl TabViewer for DockContext {
@@ -143,6 +150,7 @@ impl TabViewer for DockContext {
         match tab.as_str() {
             "Viewer" => self.viewer(ui),
             "Node Graph" => self.node_graph(),
+            "Properties" => self.properties_panel(ui),
             _ => {
                 ui.label(tab.as_str());
             }
