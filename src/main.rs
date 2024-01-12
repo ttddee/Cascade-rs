@@ -36,6 +36,7 @@ pub fn main() {
         width: 1920.,
         height: 1080.,
         mode: WindowMode::Windowed,
+        title: "Cascade Image Editor".to_string(),
         ..Default::default()
     };
     windows.create_window(&event_loop, &vulkano_context, &window_descriptor, |ci| {
@@ -55,7 +56,7 @@ pub fn main() {
         )
     };
 
-    let scene_view_size = [1024, 512];
+    let scene_view_size = [1440, 720];
 
     // Create a simple image to which we'll draw the triangle scene
     let scene_image = ImageView::new_default(

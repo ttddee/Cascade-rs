@@ -181,4 +181,8 @@ impl TabViewer for DockContext {
         self.open_tabs.remove(tab);
         true
     }
+
+    fn scroll_bars(&self, _tab: &Self::Tab) -> [bool; 2] {
+        [false, false]
+    }
 }
