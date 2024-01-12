@@ -11,7 +11,7 @@ use csc_core::graph_model::NodeGraphState;
 use csc_core::node_model::{CsImageType, MyNodeData, MyValueType, NodeType};
 use csc_core::node_property::{ChoiceData, NodeProperty, NumberData, PathListData};
 
-use crate::style::COLOR_BG_DARK;
+use crate::style::CS_COLOR_BG_DARK;
 
 pub struct PropertiesPanel {
     opened_file: Option<PathBuf>,
@@ -114,7 +114,7 @@ impl PropertiesPanel {
         };
         ui.separator();
         egui::Frame::none()
-            .fill(COLOR_BG_DARK)
+            .fill(CS_COLOR_BG_DARK)
             .inner_margin(5.)
             .show(ui, |ui| {
                 let iter = data.list().iter();

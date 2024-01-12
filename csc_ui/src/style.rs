@@ -9,19 +9,23 @@ use egui::Visuals;
 // BlueDark:       #254a73
 // Blue:           #2372ef
 // BlueHover:      #287bff
-// FGDark:         #9299a1
-// FGMid:          #c5c5c5
-// FGLight:        #b9b9b9
 
-pub const COLOR_BG_DARK: Color32 = Color32::from_rgb(24, 27, 30);
-pub const COLOR_BG_MID: Color32 = Color32::from_rgb(29, 32, 36);
-pub const COLOR_BG_LIGHT: Color32 = Color32::from_rgb(40, 45, 49);
+pub const CS_COLOR_BG_DARK: Color32 = Color32::from_rgb(24, 27, 30);
+pub const CS_COLOR_BG_MID: Color32 = Color32::from_rgb(29, 32, 36);
+pub const CS_COLOR_BG_LIGHT: Color32 = Color32::from_rgb(40, 45, 49);
+pub const CS_COLOR_FG_DARK: Color32 = Color32::from_rgb(146, 153, 161);
+pub const CS_COLOR_FG_MID: Color32 = Color32::from_rgb(185, 185, 185);
+pub const CS_COLOR_FG_LIGHT: Color32 = Color32::from_rgb(197, 197, 197);
+pub const CS_COLOR_RED: Color32 = Color32::from_rgb(229, 70, 61);
+pub const CS_COLOR_GREEN: Color32 = Color32::from_rgb(53, 226, 87);
+pub const CS_COLOR_BLUE: Color32 = Color32::from_rgb(35, 114, 239);
 
 pub fn load_style(context: &mut egui::Context) {
     let visuals = Visuals {
-        panel_fill: COLOR_BG_MID,
-        faint_bg_color: COLOR_BG_LIGHT,
-        extreme_bg_color: COLOR_BG_DARK,
+        panel_fill: CS_COLOR_BG_MID,
+        window_fill: CS_COLOR_BG_MID,
+        faint_bg_color: CS_COLOR_BG_LIGHT,
+        extreme_bg_color: CS_COLOR_BG_DARK,
         ..Default::default()
     };
 

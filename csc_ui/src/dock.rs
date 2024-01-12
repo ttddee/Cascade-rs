@@ -159,8 +159,8 @@ impl TabViewer for DockContext {
 
     fn context_menu(
         &mut self,
-        ui: &mut Ui,
-        tab: &mut Self::Tab,
+        _ui: &mut Ui,
+        _tab: &mut Self::Tab,
         _surface: SurfaceIndex,
         _node: NodeIndex,
     ) {
@@ -173,7 +173,7 @@ impl TabViewer for DockContext {
         // }
     }
 
-    fn closeable(&mut self, tab: &mut Self::Tab) -> bool {
+    fn closeable(&mut self, _tab: &mut Self::Tab) -> bool {
         false
     }
 
