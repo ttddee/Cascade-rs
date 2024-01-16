@@ -2,13 +2,14 @@ use std::ffi::OsStr;
 use std::ops::RangeInclusive;
 use std::path::{Path, PathBuf};
 
+use csc_core::node_data::{GraphNodeData, NodeType};
 use egui::Ui;
 
 use egui_file::FileDialog;
 use egui_node_graph::GraphEditorState;
 
 use csc_core::graph_model::NodeGraphState;
-use csc_core::node_model::{CsImageType, MyNodeData, MyValueType, NodeType};
+use csc_core::node_model::{GraphDataType, GraphValueType};
 use csc_core::node_property::{ChoiceData, NodeProperty, NumberData, PathListData};
 
 use crate::style::CS_COLOR_BG_DARK;
@@ -31,9 +32,9 @@ impl PropertiesPanel {
         ui: &mut Ui,
         egui_context: &egui::Context,
         graph_state: &mut GraphEditorState<
-            MyNodeData,
-            CsImageType,
-            MyValueType,
+            GraphNodeData,
+            GraphDataType,
+            GraphValueType,
             NodeType,
             NodeGraphState,
         >,
@@ -47,7 +48,7 @@ impl PropertiesPanel {
                     ui.label(egui::RichText::new(node_type.name()).strong());
                     ui.separator();
 
-                    for property in &mut active_node.user_data.node_properties {
+                    for property in &mut active_node.user_data.properties {
                         match property {
                             NodeProperty::Float(data) => {
                                 self.show_float_property(ui, data);

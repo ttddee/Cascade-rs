@@ -2,7 +2,8 @@ use std::{collections::HashSet, sync::Arc};
 
 use csc_core::{
     graph_model::NodeGraphState,
-    node_model::{AllNodeTemplates, CsImageType, MyNodeData, MyValueType, NodeType},
+    node_data::{AllNodeTemplates, GraphNodeData, NodeType},
+    node_model::{GraphDataType, GraphValueType},
 };
 use egui::{load::SizedTexture, CentralPanel, Frame, ImageSource, Ui, WidgetText};
 use egui_dock::{AllowedSplits, DockArea, DockState, NodeIndex, Style, SurfaceIndex, TabViewer};
@@ -103,7 +104,8 @@ struct DockContext {
     scene_texture_id: egui::TextureId,
     scene_view_size: [u32; 2],
     egui_context: egui::Context,
-    graph_state: GraphEditorState<MyNodeData, CsImageType, MyValueType, NodeType, NodeGraphState>,
+    graph_state:
+        GraphEditorState<GraphNodeData, GraphDataType, GraphValueType, NodeType, NodeGraphState>,
     user_state: NodeGraphState,
     properties_panel: PropertiesPanel,
 }

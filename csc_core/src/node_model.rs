@@ -3,114 +3,49 @@ use std::vec;
 use std::borrow::Cow;
 
 use egui_node_graph::{
-    DataTypeTrait, Graph, InputParamKind, NodeDataTrait, NodeId, NodeTemplateIter,
-    NodeTemplateTrait, UserResponseTrait, WidgetValueTrait,
+    DataTypeTrait, Graph, InputParamKind, NodeId, NodeTemplateTrait, UserResponseTrait,
+    WidgetValueTrait,
 };
 
 use crate::graph_model::NodeGraphState;
 
-use crate::node_property::NodeProperty;
+use crate::node_data::{GraphNodeData, NodeType};
 
-type MyGraph = Graph<MyNodeData, CsImageType, MyValueType>;
-
-#[derive(Clone, Copy, Eq, PartialEq, Hash)]
-pub enum NodeCategory {
-    IO,
-    Filters,
-}
-
-impl NodeCategory {
-    fn name(&self) -> &'static str {
-        match self {
-            NodeCategory::IO => "IO",
-            NodeCategory::Filters => "Filters",
-        }
-    }
-}
-
-// ------------------------------- ImageType
+type MyGraph = Graph<GraphNodeData, GraphDataType, GraphValueType>;
 
 /// `DataType`s are what defines the possible range of connections when
 /// attaching two ports together. The graph UI will make sure to not allow
 /// attaching incompatible datatypes.
 #[derive(PartialEq, Eq)]
 #[cfg_attr(feature = "persistence", derive(serde::Serialize, serde::Deserialize))]
-pub enum CsImageType {
+pub enum GraphDataType {
     RGB,
     Alpha,
 }
 
 // A trait for the data types, to tell the library how to display them
-impl DataTypeTrait<NodeGraphState> for CsImageType {
+impl DataTypeTrait<NodeGraphState> for GraphDataType {
     fn data_type_color(&self, _user_state: &mut NodeGraphState) -> ecolor::Color32 {
         match self {
-            CsImageType::RGB => ecolor::Color32::from_rgb(229, 70, 61),
-            CsImageType::Alpha => ecolor::Color32::from_rgb(35, 114, 239),
+            GraphDataType::RGB => ecolor::Color32::from_rgb(229, 70, 61),
+            GraphDataType::Alpha => ecolor::Color32::from_rgb(35, 114, 239),
         }
     }
 
     fn name(&self) -> Cow<'_, str> {
         match self {
-            CsImageType::RGB => Cow::Borrowed("RGB"),
-            CsImageType::Alpha => Cow::Borrowed("Alpha"),
+            GraphDataType::RGB => Cow::Borrowed("RGB"),
+            GraphDataType::Alpha => Cow::Borrowed("Alpha"),
         }
     }
 }
-
-// ------------------------------- NodeType
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-#[cfg_attr(feature = "persistence", derive(serde::Serialize, serde::Deserialize))]
-pub enum NodeType {
-    Blur,
-    Read,
-    Write,
-}
-
-impl NodeType {
-    pub fn name(&self) -> Cow<'_, str> {
-        match self {
-            NodeType::Blur => Cow::Borrowed("Blur"),
-            NodeType::Read => Cow::Borrowed("Read"),
-            NodeType::Write => Cow::Borrowed("Write"),
-        }
-    }
-
-    fn category_name(&self) -> &'static str {
-        match self {
-            NodeType::Blur => NodeCategory::name(&NodeCategory::Filters),
-            NodeType::Read => NodeCategory::name(&NodeCategory::IO),
-            NodeType::Write => NodeCategory::name(&NodeCategory::IO),
-        }
-    }
-
-    fn inputs(&self) -> Vec<CsImageType> {
-        match self {
-            NodeType::Blur => vec![CsImageType::RGB, CsImageType::Alpha],
-            NodeType::Read => vec![],
-            NodeType::Write => vec![CsImageType::RGB, CsImageType::Alpha],
-        }
-    }
-
-    fn outputs(&self) -> Vec<CsImageType> {
-        match self {
-            NodeType::Blur => vec![CsImageType::RGB, CsImageType::Alpha],
-            NodeType::Read => vec![CsImageType::RGB, CsImageType::Alpha],
-            NodeType::Write => vec![],
-        }
-    }
-}
-
-/// NodeTemplate is a mechanism to define node templates. It's what the graph
-/// will display in the "new node" popup. The user code needs to tell the
-/// library how to convert a NodeTemplate into a Node.
 
 // A trait for the node kinds, which tells the library how to build new nodes
-// from the templates in the node finder
+// from the templates in the node finder.
 impl NodeTemplateTrait for NodeType {
-    type NodeData = MyNodeData;
-    type DataType = CsImageType;
-    type ValueType = MyValueType;
+    type NodeData = GraphNodeData;
+    type DataType = GraphDataType;
+    type ValueType = GraphValueType;
     type UserState = NodeGraphState;
     type CategoryType = &'static str;
 
@@ -130,28 +65,7 @@ impl NodeTemplateTrait for NodeType {
     }
 
     fn node_data(&self, _user_state: &mut Self::UserState) -> Self::NodeData {
-        let properties: Vec<NodeProperty> = match self {
-            NodeType::Blur => vec![
-                NodeProperty::new_float("Intensity".to_string(), 1.0, 10.0, 1.0, 1.0),
-                NodeProperty::new_choice(
-                    "Type".to_string(),
-                    vec!["Box".to_string(), "Gaussian".to_string()],
-                    0,
-                ),
-            ],
-            NodeType::Read => vec![NodeProperty::new_path_list()],
-            NodeType::Write => vec![NodeProperty::new_float(
-                "Intensity".to_string(),
-                1.0,
-                10.0,
-                1.0,
-                1.0,
-            )],
-        };
-        MyNodeData {
-            node_type: *self,
-            node_properties: properties,
-        }
+        GraphNodeData::new(*self)
     }
 
     fn build_node(
@@ -167,8 +81,8 @@ impl NodeTemplateTrait for NodeType {
             graph.add_input_param(
                 node_id,
                 name.to_string(),
-                CsImageType::RGB,
-                MyValueType::RGB,
+                GraphDataType::RGB,
+                GraphValueType::RGB,
                 InputParamKind::ConnectionOnly,
                 true,
             );
@@ -177,26 +91,26 @@ impl NodeTemplateTrait for NodeType {
             graph.add_input_param(
                 node_id,
                 name.to_string(),
-                CsImageType::Alpha,
-                MyValueType::Alpha,
+                GraphDataType::Alpha,
+                GraphValueType::Alpha,
                 InputParamKind::ConnectionOnly,
                 true,
             );
         };
 
         let output_rgb = |graph: &mut MyGraph, name: &str| {
-            graph.add_output_param(node_id, name.to_string(), CsImageType::RGB);
+            graph.add_output_param(node_id, name.to_string(), GraphDataType::RGB);
         };
         let output_alpha = |graph: &mut MyGraph, name: &str| {
-            graph.add_output_param(node_id, name.to_string(), CsImageType::Alpha);
+            graph.add_output_param(node_id, name.to_string(), GraphDataType::Alpha);
         };
 
         let inputs = self.inputs();
         let iter = inputs.iter();
         for input in iter {
             match input {
-                CsImageType::RGB => input_rgb(graph, "RGB"),
-                CsImageType::Alpha => input_alpha(graph, "Alpha"),
+                GraphDataType::RGB => input_rgb(graph, "RGB"),
+                GraphDataType::Alpha => input_alpha(graph, "Alpha"),
             }
         }
 
@@ -204,31 +118,12 @@ impl NodeTemplateTrait for NodeType {
         let iter = outputs.iter();
         for output in iter {
             match output {
-                CsImageType::RGB => output_rgb(graph, "RGB"),
-                CsImageType::Alpha => output_alpha(graph, "Alpha"),
+                GraphDataType::RGB => output_rgb(graph, "RGB"),
+                GraphDataType::Alpha => output_alpha(graph, "Alpha"),
             }
         }
     }
 }
-
-// ------------------------------- MyNodeData
-
-/// The NodeData holds a custom data struct inside each node. It's useful to
-/// store additional information that doesn't live in parameters. For this
-/// example, the node data stores the template (i.e. the "type") of the node.
-#[cfg_attr(feature = "persistence", derive(serde::Serialize, serde::Deserialize))]
-pub struct MyNodeData {
-    pub node_type: NodeType,
-    pub node_properties: Vec<NodeProperty>,
-}
-impl NodeDataTrait for MyNodeData {
-    type Response = MyResponse;
-    type UserState = NodeGraphState;
-    type DataType = CsImageType;
-    type ValueType = MyValueType;
-}
-
-// ------------------------------- MyValueType
 
 /// In the graph, input parameters can optionally have a constant value. This
 /// value can be directly edited in a widget inside the node itself.
@@ -239,12 +134,12 @@ impl NodeDataTrait for MyNodeData {
 /// with a DataType of Scalar and a ValueType of Vec2.
 #[derive(Copy, Clone, Debug)]
 #[cfg_attr(feature = "persistence", derive(serde::Serialize, serde::Deserialize))]
-pub enum MyValueType {
+pub enum GraphValueType {
     RGB,
     Alpha,
 }
 
-impl Default for MyValueType {
+impl Default for GraphValueType {
     fn default() -> Self {
         // NOTE: This is just a dummy `Default` implementation. The library
         // requires it to circumvent some internal borrow checker issues.
@@ -252,27 +147,27 @@ impl Default for MyValueType {
     }
 }
 
-impl WidgetValueTrait for MyValueType {
+impl WidgetValueTrait for GraphValueType {
     type Response = MyResponse;
     type UserState = NodeGraphState;
-    type NodeData = MyNodeData;
+    type NodeData = GraphNodeData;
     fn value_widget(
         &mut self,
         param_name: &str,
         _node_id: NodeId,
         ui: &mut egui::Ui,
         _user_state: &mut NodeGraphState,
-        _node_data: &MyNodeData,
+        _node_data: &GraphNodeData,
     ) -> Vec<MyResponse> {
         // This trait is used to tell the library which UI to display for the
         // inline parameter widgets.
         match self {
-            MyValueType::RGB {} => {
+            GraphValueType::RGB {} => {
                 ui.horizontal(|ui| {
                     ui.label(param_name);
                 });
             }
-            MyValueType::Alpha {} => {
+            GraphValueType::Alpha {} => {
                 ui.horizontal(|ui| {
                     ui.label(param_name);
                 });
@@ -282,8 +177,6 @@ impl WidgetValueTrait for MyValueType {
         Vec::new()
     }
 }
-
-// ------------------------------- MyResponse
 
 /// The response type is used to encode side-effects produced when drawing a
 /// node in the graph. Most side-effects (creating new nodes, deleting existing
@@ -296,17 +189,3 @@ pub enum MyResponse {
 }
 
 impl UserResponseTrait for MyResponse {}
-
-// ------------------------------- AllMyNodeTemplates
-
-pub struct AllNodeTemplates;
-impl NodeTemplateIter for AllNodeTemplates {
-    type Item = NodeType;
-
-    fn all_kinds(&self) -> Vec<Self::Item> {
-        // This function must return a list of node kinds, which the node finder
-        // will use to display it to the user. Crates like strum can reduce the
-        // boilerplate in enumerating all variants of an enum.
-        vec![NodeType::Blur, NodeType::Read, NodeType::Write]
-    }
-}
