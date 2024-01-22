@@ -1,12 +1,7 @@
 #![allow(clippy::eq_op)]
 
-use std::sync::Arc;
-
 use egui_winit_vulkano::{Gui, GuiConfig};
 use vulkano::{
-    command_buffer::allocator::{
-        StandardCommandBufferAllocator, StandardCommandBufferAllocatorCreateInfo,
-    },
     image::{view::ImageView, Image, ImageCreateInfo, ImageType, ImageUsage},
     memory::allocator::AllocationCreateInfo,
     sync::{self, GpuFuture},
@@ -21,7 +16,6 @@ use winit::{
     event_loop::{ControlFlow, EventLoop},
 };
 
-use csc_engine::renderer;
 use csc_engine::renderer::RenderPipeline;
 use csc_ui::{dock::MainDock, main_menu, style::load_style};
 
@@ -80,16 +74,7 @@ pub fn main() {
     let mut scene_render_pipeline = RenderPipeline::new(
         vulkano_context.graphics_queue().clone(),
         DEFAULT_IMAGE_FORMAT,
-        &renderer::Allocators {
-            command_buffers: Arc::new(StandardCommandBufferAllocator::new(
-                vulkano_context.device().clone(),
-                StandardCommandBufferAllocatorCreateInfo {
-                    secondary_buffer_count: 32,
-                    ..Default::default()
-                },
-            )),
-            memory: vulkano_context.memory_allocator().clone(),
-        },
+        &vulkano_context,
     );
 
     let mut main_dock = MainDock::new(&mut gui, scene_image.clone(), scene_view_size);
