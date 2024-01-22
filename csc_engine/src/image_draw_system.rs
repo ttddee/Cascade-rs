@@ -259,8 +259,6 @@ impl ImageDrawSystem {
         builder
             .bind_pipeline_graphics(self.pipeline.clone())
             .unwrap()
-            //.copy_buffer_to_image(CopyBufferToImageInfo::buffer_image(upload_buffer, image))
-            //.unwrap()
             .set_viewport(
                 0,
                 [Viewport {

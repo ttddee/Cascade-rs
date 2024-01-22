@@ -28,7 +28,6 @@ pub struct Allocators {
 
 pub struct RenderPipeline {
     frame_system: FrameSystem,
-    //draw_pipeline: TriangleDrawSystem,
     image_draw_system: ImageDrawSystem,
     allocators: Allocators,
 }
@@ -51,14 +50,11 @@ impl RenderPipeline {
         };
 
         let frame_system = FrameSystem::new(queue.clone(), image_format, allocators.clone());
-        //let draw_pipeline =
-        //TriangleDrawSystem::new(queue, frame_system.deferred_subpass(), &allocators);
         let image_draw_system =
             ImageDrawSystem::new(queue, frame_system.deferred_subpass(), &allocators);
 
         Self {
             frame_system,
-            //draw_pipeline,
             image_draw_system,
             allocators,
         }
