@@ -7,10 +7,6 @@
 // notice may not be copied, modified, or distributed except
 // according to those terms.
 
-// This is a simplified version of the example. See that for commented version of this code.
-// https://github.com/vulkano-rs/vulkano-examples/blob/master/src/bin/deferred/frame/system.rs
-// Egui drawing could be its own pass or it could be a deferred subpass
-
 use std::{convert::TryFrom, sync::Arc};
 
 use cgmath::Matrix4;
@@ -21,8 +17,7 @@ use vulkano::{
     },
     device::Queue,
     format::Format,
-    image::{view::ImageView, Image, ImageCreateInfo, ImageType, ImageUsage},
-    memory::allocator::AllocationCreateInfo,
+    image::view::ImageView,
     render_pass::{Framebuffer, FramebufferCreateInfo, RenderPass, Subpass},
     sync::GpuFuture,
 };
@@ -33,7 +28,6 @@ use crate::renderer::Allocators;
 pub struct FrameSystem {
     gfx_queue: Arc<Queue>,
     render_pass: Arc<RenderPass>,
-    depth_buffer: Arc<ImageView>,
     allocators: Allocators,
 }
 
@@ -51,41 +45,20 @@ impl FrameSystem {
                     load_op: Clear,
                     store_op: Store,
                 },
-                depth: {
-                    format: Format::D16_UNORM,
-                    samples: 1,
-                    load_op: Clear,
-                    store_op: DontCare,
-                }
             },
             passes: [
                 {
                     color: [final_color],
-                    depth_stencil: {depth},
+                    depth_stencil: {},
                     input: []
                 }
             ]
         )
         .unwrap();
 
-        let depth_buffer = Image::new(
-            allocators.memory.clone(),
-            ImageCreateInfo {
-                image_type: ImageType::Dim2d,
-                format: Format::D16_UNORM,
-                extent: [1, 1, 1],
-                array_layers: 1,
-                usage: ImageUsage::SAMPLED | ImageUsage::DEPTH_STENCIL_ATTACHMENT,
-                ..Default::default()
-            },
-            AllocationCreateInfo::default(),
-        )
-        .unwrap();
-        let depth_buffer = ImageView::new_default(depth_buffer.clone()).unwrap();
         FrameSystem {
             gfx_queue,
             render_pass,
-            depth_buffer,
             allocators,
         }
     }
@@ -104,30 +77,10 @@ impl FrameSystem {
     where
         F: GpuFuture + 'static,
     {
-        let img_dims = final_image.image().extent();
-        if self.depth_buffer.image().extent() != img_dims {
-            self.depth_buffer = ImageView::new_default(
-                Image::new(
-                    self.allocators.memory.clone(),
-                    ImageCreateInfo {
-                        image_type: ImageType::Dim2d,
-                        format: Format::D16_UNORM,
-                        extent: final_image.image().extent(),
-                        array_layers: 1,
-                        usage: ImageUsage::DEPTH_STENCIL_ATTACHMENT
-                            | ImageUsage::TRANSIENT_ATTACHMENT,
-                        ..Default::default()
-                    },
-                    AllocationCreateInfo::default(),
-                )
-                .unwrap(),
-            )
-            .unwrap();
-        }
         let framebuffer = Framebuffer::new(
             self.render_pass.clone(),
             FramebufferCreateInfo {
-                attachments: vec![final_image, self.depth_buffer.clone()],
+                attachments: vec![final_image],
                 ..Default::default()
             },
         )
