@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use cgmath::{Matrix4, SquareMatrix};
 use vulkano::{
     command_buffer::allocator::{
         StandardCommandBufferAllocator, StandardCommandBufferAllocatorCreateInfo,
@@ -70,7 +69,6 @@ impl RenderPipeline {
             before_future,
             // Notice that final image is now scene image
             image.clone(),
-            Matrix4::identity(),
         );
         // Draw each render pass that's related to scene
         let mut after_future = None;

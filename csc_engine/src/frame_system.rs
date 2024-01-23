@@ -9,7 +9,6 @@
 
 use std::{convert::TryFrom, sync::Arc};
 
-use cgmath::Matrix4;
 use vulkano::{
     command_buffer::{
         AutoCommandBufferBuilder, CommandBufferUsage, PrimaryAutoCommandBuffer,
@@ -68,12 +67,7 @@ impl FrameSystem {
         Subpass::from(self.render_pass.clone(), 0).unwrap()
     }
 
-    pub fn frame<F>(
-        &mut self,
-        before_future: F,
-        final_image: Arc<ImageView>,
-        world_to_framebuffer: Matrix4<f32>,
-    ) -> Frame
+    pub fn frame<F>(&mut self, before_future: F, final_image: Arc<ImageView>) -> Frame
     where
         F: GpuFuture + 'static,
     {
@@ -107,10 +101,8 @@ impl FrameSystem {
         Frame {
             system: self,
             before_main_cb_future: Some(Box::new(before_future)),
-            framebuffer,
             num_pass: 0,
             command_buffer_builder: Some(command_buffer_builder),
-            world_to_framebuffer,
         }
     }
 }
@@ -119,10 +111,7 @@ pub struct Frame<'a> {
     system: &'a mut FrameSystem,
     num_pass: u8,
     before_main_cb_future: Option<Box<dyn GpuFuture>>,
-    framebuffer: Arc<Framebuffer>,
     command_buffer_builder: Option<AutoCommandBufferBuilder<PrimaryAutoCommandBuffer>>,
-    #[allow(dead_code)]
-    world_to_framebuffer: Matrix4<f32>,
 }
 
 impl<'a> Frame<'a> {
