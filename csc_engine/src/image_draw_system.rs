@@ -28,7 +28,6 @@ use vulkano::{
     pipeline::{
         graphics::{
             color_blend::{ColorBlendAttachmentState, ColorBlendState},
-            depth_stencil::DepthStencilState,
             input_assembly::{InputAssemblyState, PrimitiveTopology},
             multisample::MultisampleState,
             rasterization::RasterizationState,
@@ -145,7 +144,6 @@ impl ImageDrawSystem {
                         subpass.num_color_attachments(),
                         ColorBlendAttachmentState::default(),
                     )),
-                    depth_stencil_state: Some(DepthStencilState::default()),
                     dynamic_state: [DynamicState::Viewport].into_iter().collect(),
                     subpass: Some(subpass.clone().into()),
                     ..GraphicsPipelineCreateInfo::layout(layout)

@@ -94,7 +94,7 @@ impl FrameSystem {
         command_buffer_builder
             .begin_render_pass(
                 RenderPassBeginInfo {
-                    clear_values: vec![Some([0.05, 0.05, 0.05, 0.0].into()), Some(1.0f32.into())],
+                    clear_values: vec![Some([0.05, 0.05, 0.05, 0.0].into())],
                     ..RenderPassBeginInfo::framebuffer(framebuffer.clone())
                 },
                 SubpassBeginInfo {
@@ -174,17 +174,5 @@ impl<'f, 's: 'f> DrawPass<'f, 's> {
             .unwrap()
             .execute_commands(command_buffer)
             .unwrap();
-    }
-
-    #[allow(dead_code)]
-    #[inline]
-    pub fn viewport_dimensions(&self) -> [u32; 2] {
-        self.frame.framebuffer.extent()
-    }
-
-    #[allow(dead_code)]
-    #[inline]
-    pub fn world_to_framebuffer_matrix(&self) -> Matrix4<f32> {
-        self.frame.world_to_framebuffer
     }
 }
