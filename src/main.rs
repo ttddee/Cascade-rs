@@ -50,6 +50,7 @@ pub fn main() {
         )
     };
 
+    // TODO: These dimensions should be as big as the viewer area
     let scene_view_size = [1440, 720];
 
     // Create a simple image to which we'll draw the triangle scene

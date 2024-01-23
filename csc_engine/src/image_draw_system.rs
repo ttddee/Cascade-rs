@@ -93,8 +93,8 @@ impl ImageDrawSystem {
         let sampler = Sampler::new(
             gfx_queue.device().clone(),
             SamplerCreateInfo {
-                mag_filter: Filter::Linear,
-                min_filter: Filter::Linear,
+                mag_filter: Filter::Nearest,
+                min_filter: Filter::Nearest,
                 address_mode: [SamplerAddressMode::ClampToBorder; 3],
                 ..Default::default()
             },
@@ -164,11 +164,7 @@ impl ImageDrawSystem {
         }
     }
 
-    pub fn draw(
-        &self,
-        viewport_dimensions: [u32; 2],
-        allocators: &Allocators,
-    ) -> Arc<SecondaryAutoCommandBuffer<Arc<StandardCommandBufferAllocator>>> {
+    fn load_image(gfx_queue: Arc<Queue>, allocators: &Allocators) -> Arc<ImageView> {
         let png_bytes = include_bytes!("../../assets/images/test.png").as_slice();
         let decoder = png::Decoder::new(png_bytes);
         let mut reader = decoder.read_info().unwrap();
@@ -186,7 +182,7 @@ impl ImageDrawSystem {
                     | MemoryTypeFilter::HOST_SEQUENTIAL_WRITE,
                 ..Default::default()
             },
-            (info.width * info.height * 4) as DeviceSize,
+            (extent[0] * extent[1] * 4) as DeviceSize,
         )
         .unwrap();
 
@@ -212,8 +208,8 @@ impl ImageDrawSystem {
         };
 
         let mut uploads = AutoCommandBufferBuilder::primary(
-            &self.command_buffer_allocator,
-            self.gfx_queue.queue_family_index(),
+            &allocators.command_buffers,
+            gfx_queue.queue_family_index(),
             CommandBufferUsage::OneTimeSubmit,
         )
         .unwrap();
@@ -228,18 +224,28 @@ impl ImageDrawSystem {
         uploads
             .build()
             .unwrap()
-            .execute(self.gfx_queue.clone())
+            .execute(gfx_queue.clone())
             .unwrap()
             .boxed();
 
+        texture
+    }
+
+    pub fn draw(
+        &self,
+        allocators: &Allocators,
+    ) -> Arc<SecondaryAutoCommandBuffer<Arc<StandardCommandBufferAllocator>>> {
         let layout = self.pipeline.layout().set_layouts().get(0).unwrap();
+
+        let image_view = Self::load_image(self.gfx_queue.clone(), allocators);
+        let image_size = image_view.image().extent();
 
         let desc_set = PersistentDescriptorSet::new(
             &allocators.descriptor,
             layout.clone(),
             [
                 WriteDescriptorSet::sampler(0, self.sampler.clone()),
-                WriteDescriptorSet::image_view(1, texture),
+                WriteDescriptorSet::image_view(1, image_view),
             ],
             [],
         )
@@ -263,7 +269,7 @@ impl ImageDrawSystem {
                 0,
                 [Viewport {
                     offset: [0.0, 0.0],
-                    extent: [viewport_dimensions[0] as f32, viewport_dimensions[1] as f32],
+                    extent: [image_size[0] as f32, image_size[1] as f32],
                     depth_range: 0.0..=1.0,
                 }]
                 .into_iter()

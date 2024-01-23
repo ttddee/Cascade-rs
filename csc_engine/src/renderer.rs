@@ -72,16 +72,12 @@ impl RenderPipeline {
             image.clone(),
             Matrix4::identity(),
         );
-        let dims = image.image().extent();
         // Draw each render pass that's related to scene
         let mut after_future = None;
         while let Some(pass) = frame.next_pass() {
             match pass {
                 Pass::Deferred(mut draw_pass) => {
-                    let cb = Arc::new(
-                        self.image_draw_system
-                            .draw([dims[0], dims[1]], &self.allocators),
-                    );
+                    let cb = Arc::new(self.image_draw_system.draw(&self.allocators));
                     draw_pass.execute(cb);
                 }
                 Pass::Finished(af) => {

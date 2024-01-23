@@ -141,7 +141,7 @@ impl FrameSystem {
         command_buffer_builder
             .begin_render_pass(
                 RenderPassBeginInfo {
-                    clear_values: vec![Some([0.0, 0.0, 0.0, 0.0].into()), Some(1.0f32.into())],
+                    clear_values: vec![Some([0.05, 0.05, 0.05, 0.0].into()), Some(1.0f32.into())],
                     ..RenderPassBeginInfo::framebuffer(framebuffer.clone())
                 },
                 SubpassBeginInfo {
