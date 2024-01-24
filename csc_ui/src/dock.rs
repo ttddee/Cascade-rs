@@ -153,9 +153,7 @@ impl TabViewer for DockContext {
             "Viewer" => self.viewer(ui),
             "Node Graph" => self.node_graph(ui),
             "Properties" => self.properties_panel(ui),
-            _ => {
-                ui.label(tab.as_str());
-            }
+            _ => {}
         }
     }
 

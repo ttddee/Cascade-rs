@@ -53,8 +53,8 @@ pub fn main() {
     // TODO: These dimensions should be as big as the viewer area
     let scene_view_size = [1440, 720];
 
-    // Create a simple image to which we'll draw the triangle scene
-    let scene_image = ImageView::new_default(
+    // The image that the viewer gets rendered on
+    let viewer_image = ImageView::new_default(
         Image::new(
             vulkano_context.memory_allocator().clone(),
             ImageCreateInfo {
@@ -71,18 +71,16 @@ pub fn main() {
     )
     .unwrap();
 
-    // Create our render pipeline
     let mut scene_render_pipeline = RenderPipeline::new(
         vulkano_context.graphics_queue().clone(),
         DEFAULT_IMAGE_FORMAT,
         &vulkano_context,
     );
 
-    let mut main_dock = MainDock::new(&mut gui, scene_image.clone(), scene_view_size);
+    let mut main_dock = MainDock::new(&mut gui, viewer_image.clone(), scene_view_size);
 
     load_style(&mut gui.context());
 
-    // Create gui state (pass anything your state requires)
     event_loop.run(move |event, _, control_flow| {
         let renderer = windows.get_primary_renderer_mut().unwrap();
 
@@ -124,7 +122,7 @@ pub fn main() {
                 };
                 // Draw scene
                 let after_scene_draw =
-                    scene_render_pipeline.render(before_future, scene_image.clone());
+                    scene_render_pipeline.render(before_future, viewer_image.clone());
                 // Render gui
                 let after_future =
                     gui.draw_on_image(after_scene_draw, renderer.swapchain_image_view());
