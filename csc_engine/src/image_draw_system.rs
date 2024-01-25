@@ -75,15 +75,19 @@ impl ImageDrawSystem {
             [
                 CsVertex {
                     position: [-1.0, -1.0],
+                    uv: [0.0, 0.0],
                 },
                 CsVertex {
                     position: [-1.0, 1.0],
+                    uv: [0.0, 1.0],
                 },
                 CsVertex {
                     position: [1.0, -1.0],
+                    uv: [1.0, 0.0],
                 },
                 CsVertex {
                     position: [1.0, 1.0],
+                    uv: [1.0, 1.0],
                 },
             ],
         )
@@ -294,4 +298,6 @@ impl ImageDrawSystem {
 struct CsVertex {
     #[format(R32G32_SFLOAT)]
     position: [f32; 2],
+    #[format(R32G32_SFLOAT)]
+    uv: [f32; 2],
 }

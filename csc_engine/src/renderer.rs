@@ -74,7 +74,7 @@ impl RenderPipeline {
         let mut after_future = None;
         while let Some(pass) = frame.next_pass() {
             match pass {
-                Pass::Deferred(mut draw_pass) => {
+                Pass::Draw(mut draw_pass) => {
                     let cb = Arc::new(self.image_draw_system.draw(&self.allocators));
                     draw_pass.execute(cb);
                 }

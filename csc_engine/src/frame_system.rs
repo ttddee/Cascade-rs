@@ -121,7 +121,7 @@ impl<'a> Frame<'a> {
             self.num_pass += 1;
             current_pass
         } {
-            0 => Some(Pass::Deferred(DrawPass { frame: self })),
+            0 => Some(Pass::Draw(DrawPass { frame: self })),
             1 => {
                 self.command_buffer_builder
                     .as_mut()
@@ -143,7 +143,7 @@ impl<'a> Frame<'a> {
 }
 
 pub enum Pass<'f, 's: 'f> {
-    Deferred(DrawPass<'f, 's>),
+    Draw(DrawPass<'f, 's>),
     Finished(Box<dyn GpuFuture>),
 }
 
