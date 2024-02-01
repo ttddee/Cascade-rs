@@ -51,6 +51,7 @@ pub fn main() {
     };
 
     // TODO: These dimensions should be as big as the viewer area
+    // and get updated on window resize
     let scene_view_size = [1440, 720];
 
     // The image that the viewer gets rendered on
@@ -110,7 +111,6 @@ pub fn main() {
 
                     main_dock.show(gui.context());
                 });
-                // Render UI
                 // Acquire swapchain future
                 let before_future = match renderer.acquire() {
                     Ok(future) => future,
