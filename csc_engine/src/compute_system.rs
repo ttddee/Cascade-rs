@@ -3,8 +3,8 @@ use std::sync::Arc;
 use vulkano::{
     buffer::{Buffer, BufferCreateInfo, BufferUsage},
     command_buffer::{
-        allocator::StandardCommandBufferAllocator, AutoCommandBufferBuilder,
-        CommandBufferInheritanceInfo, CommandBufferUsage, SecondaryAutoCommandBuffer,
+        allocator::StandardCommandBufferAllocator, AutoCommandBufferBuilder, CommandBufferUsage,
+        PrimaryCommandBufferAbstract,
     },
     descriptor_set::{PersistentDescriptorSet, WriteDescriptorSet},
     device::Queue,
@@ -14,25 +14,19 @@ use vulkano::{
         ComputePipeline, Pipeline, PipelineBindPoint, PipelineLayout,
         PipelineShaderStageCreateInfo,
     },
-    render_pass::Subpass,
 };
 
 use crate::renderer::Allocators;
 
 pub struct ComputeSystem {
     compute_queue: Arc<Queue>,
-    subpass: Subpass,
     pipeline: Arc<ComputePipeline>,
     command_buffer_allocator: Arc<StandardCommandBufferAllocator>,
     descriptor_set: Arc<PersistentDescriptorSet>,
 }
 
 impl ComputeSystem {
-    pub fn new(
-        compute_queue: Arc<Queue>,
-        subpass: Subpass,
-        allocators: &Allocators,
-    ) -> ComputeSystem {
+    pub fn new(compute_queue: Arc<Queue>, allocators: &Allocators) -> ComputeSystem {
         let pipeline = {
             mod cs {
                 vulkano_shaders::shader! {
@@ -109,25 +103,17 @@ impl ComputeSystem {
 
         ComputeSystem {
             compute_queue,
-            subpass,
             pipeline,
             command_buffer_allocator: allocators.command_buffers.clone(),
             descriptor_set,
         }
     }
 
-    pub fn execute(
-        &self,
-        allocators: &Allocators,
-    ) -> Arc<SecondaryAutoCommandBuffer<Arc<StandardCommandBufferAllocator>>> {
-        let mut builder = AutoCommandBufferBuilder::secondary(
+    pub fn execute(&self, allocators: &Allocators) {
+        let mut builder = AutoCommandBufferBuilder::primary(
             &self.command_buffer_allocator,
             self.compute_queue.queue_family_index(),
             CommandBufferUsage::MultipleSubmit,
-            CommandBufferInheritanceInfo {
-                render_pass: Some(self.subpass.clone().into()),
-                ..Default::default()
-            },
         )
         .unwrap();
 
@@ -147,6 +133,7 @@ impl ComputeSystem {
         builder.dispatch([1024, 1, 1]).unwrap();
 
         // Finish building the command buffer by calling `build`.
-        builder.build().unwrap()
+        let cb = builder.build().unwrap();
+        cb.execute(self.compute_queue.clone());
     }
 }

@@ -143,6 +143,7 @@ impl<'a> Frame<'a> {
 }
 
 pub enum Pass<'f, 's: 'f> {
+    Compute,
     Draw(DrawPass<'f, 's>),
     Finished(Box<dyn GpuFuture>),
 }
