@@ -2,10 +2,13 @@ use std::sync::Arc;
 
 use vulkano::{
     command_buffer::{
-        allocator::{StandardCommandBufferAllocator, StandardCommandBufferAllocatorCreateInfo},
-        PrimaryCommandBufferAbstract,
+        allocator::{
+            CommandBufferAllocator, StandardCommandBufferAllocator,
+            StandardCommandBufferAllocatorCreateInfo,
+        },
+        CommandBuffer,
     },
-    descriptor_set::allocator::StandardDescriptorSetAllocator,
+    descriptor_set::allocator::{DescriptorSetAllocator, StandardDescriptorSetAllocator},
     device::Queue,
     format::Format,
     image::view::ImageView,
@@ -15,16 +18,16 @@ use vulkano::{
 use vulkano_util::context::VulkanoContext;
 
 use crate::{
-    compute_system::{self, ComputeSystem},
+    compute_system::ComputeSystem,
     frame_system::{FrameSystem, Pass},
     image_draw_system::ImageDrawSystem,
 };
 
 #[derive(Clone)]
 pub struct Allocators {
-    pub command_buffers: Arc<StandardCommandBufferAllocator>,
+    pub command_buffers: Arc<dyn CommandBufferAllocator>,
     pub memory: Arc<StandardMemoryAllocator>,
-    pub descriptor: Arc<StandardDescriptorSetAllocator>,
+    pub descriptor: Arc<dyn DescriptorSetAllocator>,
 }
 
 pub struct RenderPipeline {
@@ -85,8 +88,8 @@ impl RenderPipeline {
                     self.compute_system.execute(&self.allocators);
                 }
                 Pass::Draw(mut draw_pass) => {
-                    let cb = Arc::new(self.image_draw_system.draw(&self.allocators));
-                    draw_pass.execute(cb);
+                    let cb = self.image_draw_system.draw(&self.allocators);
+                    draw_pass.execute::<CommandBuffer>(cb);
                 }
                 Pass::Finished(af) => {
                     after_future = Some(af);

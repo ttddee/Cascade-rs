@@ -26,15 +26,16 @@ vulkano-util = { workspace = true }
 winit = { workspace = true }
 
 [workspace.dependencies]
-egui = "0.24.1"
-ecolor = "0.24.1"
-egui-winit = "0.24.1"
-winit = "0.28.2"
-egui_winit_vulkano = "0.27.0"
-vulkano = "0.34.1"
-vulkano-util = "0.34.1"
+egui = "0.28.1"
+ecolor = "0.28.1"
+egui-winit = "0.28.1"
+winit = "0.29"
+egui_winit_vulkano = { path = "../egui_winit_vulkano"}
+vulkano = {version = "0.34", git = "https://github.com/vulkano-rs/vulkano.git", rev="5b466bf14323383b78745c3fadc336f103304261"}
+vulkano-util = {version = "0.34", git = "https://github.com/vulkano-rs/vulkano.git", rev="5b466bf14323383b78745c3fadc336f103304261"}
+vulkano-shaders = "0.34"
 egui_node_graph = { path = "../egui_node_graph/egui_node_graph"}
-egui_file = "0.13.0"
-egui_dock = { git="https://github.com/Adanos020/egui_dock", rev="fae7fbc9483ed62fd982c88201a7f8f1b4563559" }
+egui_file = "0.18.0"
+egui_dock = { git="https://github.com/Adanos020/egui_dock", rev="e33130ce4e25431741f213f9fb081dcb0108aa66" }
 anyhow = "1.0"
 cgmath = "0.18.0"

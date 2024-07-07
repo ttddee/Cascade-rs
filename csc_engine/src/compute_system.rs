@@ -3,10 +3,10 @@ use std::sync::Arc;
 use vulkano::{
     buffer::{Buffer, BufferCreateInfo, BufferUsage},
     command_buffer::{
-        allocator::StandardCommandBufferAllocator, AutoCommandBufferBuilder, CommandBufferUsage,
-        PrimaryCommandBufferAbstract,
+        allocator::CommandBufferAllocator, CommandBufferBeginInfo, CommandBufferLevel,
+        CommandBufferUsage, RecordingCommandBuffer,
     },
-    descriptor_set::{PersistentDescriptorSet, WriteDescriptorSet},
+    descriptor_set::{DescriptorSet, WriteDescriptorSet},
     device::Queue,
     memory::allocator::{AllocationCreateInfo, MemoryTypeFilter},
     pipeline::{
@@ -21,8 +21,8 @@ use crate::renderer::Allocators;
 pub struct ComputeSystem {
     compute_queue: Arc<Queue>,
     pipeline: Arc<ComputePipeline>,
-    command_buffer_allocator: Arc<StandardCommandBufferAllocator>,
-    descriptor_set: Arc<PersistentDescriptorSet>,
+    command_buffer_allocator: Arc<dyn CommandBufferAllocator>,
+    descriptor_set: Arc<DescriptorSet>,
 }
 
 impl ComputeSystem {
@@ -93,8 +93,8 @@ impl ComputeSystem {
         // If you want to run the pipeline on multiple different buffers, you need to create multiple
         // descriptor sets that each contain the buffer you want to run the shader on.
         let layout = pipeline.layout().set_layouts()[0].clone();
-        let descriptor_set = PersistentDescriptorSet::new(
-            &allocators.descriptor,
+        let descriptor_set = DescriptorSet::new(
+            allocators.descriptor.clone(),
             layout.clone(),
             [WriteDescriptorSet::buffer(0, data_buffer.clone())],
             [],
@@ -110,10 +110,14 @@ impl ComputeSystem {
     }
 
     pub fn execute(&self, allocators: &Allocators) {
-        let mut builder = AutoCommandBufferBuilder::primary(
-            &self.command_buffer_allocator,
+        let mut builder = RecordingCommandBuffer::new(
+            self.command_buffer_allocator.clone(),
             self.compute_queue.queue_family_index(),
-            CommandBufferUsage::MultipleSubmit,
+            CommandBufferLevel::Primary,
+            CommandBufferBeginInfo {
+                usage: CommandBufferUsage::OneTimeSubmit,
+                ..Default::default()
+            },
         )
         .unwrap();
 
@@ -130,10 +134,12 @@ impl ComputeSystem {
 
         // The command buffer only does one thing: execute the compute pipeline. This is called a
         // *dispatch* operation.
-        builder.dispatch([1024, 1, 1]).unwrap();
+        unsafe {
+            builder.dispatch([1024, 1, 1]).unwrap();
+        }
 
         // Finish building the command buffer by calling `build`.
-        let cb = builder.build().unwrap();
+        let cb = builder.end().unwrap();
         cb.execute(self.compute_queue.clone());
     }
 }

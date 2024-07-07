@@ -12,11 +12,11 @@ use std::{convert::TryInto, sync::Arc};
 use vulkano::{
     buffer::{Buffer, BufferContents, BufferCreateInfo, BufferUsage, Subbuffer},
     command_buffer::{
-        allocator::StandardCommandBufferAllocator, AutoCommandBufferBuilder,
-        CommandBufferInheritanceInfo, CommandBufferUsage, CopyBufferToImageInfo,
-        PrimaryCommandBufferAbstract, SecondaryAutoCommandBuffer,
+        allocator::{CommandBufferAllocator, StandardCommandBufferAllocator},
+        CommandBuffer, CommandBufferBeginInfo, CommandBufferInheritanceInfo, CommandBufferLevel,
+        CommandBufferUsage, CopyBufferToImageInfo, RecordingCommandBuffer,
     },
-    descriptor_set::{PersistentDescriptorSet, WriteDescriptorSet},
+    descriptor_set::{DescriptorSet, WriteDescriptorSet},
     device::Queue,
     format::Format,
     image::{
@@ -51,7 +51,7 @@ pub struct ImageDrawSystem {
     vertex_buffer: Subbuffer<[CsVertex]>,
     pipeline: Arc<GraphicsPipeline>,
     subpass: Subpass,
-    command_buffer_allocator: Arc<StandardCommandBufferAllocator>,
+    command_buffer_allocator: Arc<dyn CommandBufferAllocator>,
     sampler: Arc<Sampler>,
 }
 
@@ -114,9 +114,7 @@ impl ImageDrawSystem {
                 .entry_point("main")
                 .unwrap();
 
-            let vertex_input_state = CsVertex::per_vertex()
-                .definition(&vs.info().input_interface)
-                .unwrap();
+            let vertex_input_state = CsVertex::per_vertex().definition(&vs).unwrap();
 
             let stages = [
                 PipelineShaderStageCreateInfo::new(vs),
@@ -209,10 +207,14 @@ impl ImageDrawSystem {
             ImageView::new_default(image.clone()).unwrap()
         };
 
-        let mut uploads = AutoCommandBufferBuilder::primary(
-            &allocators.command_buffers,
+        let mut uploads = RecordingCommandBuffer::new(
+            allocators.command_buffers.clone(),
             gfx_queue.queue_family_index(),
-            CommandBufferUsage::OneTimeSubmit,
+            CommandBufferLevel::Primary,
+            CommandBufferBeginInfo {
+                usage: CommandBufferUsage::OneTimeSubmit,
+                ..Default::default()
+            },
         )
         .unwrap();
 
@@ -224,7 +226,7 @@ impl ImageDrawSystem {
             .unwrap();
 
         uploads
-            .build()
+            .end()
             .unwrap()
             .execute(gfx_queue.clone())
             .unwrap()
@@ -233,17 +235,14 @@ impl ImageDrawSystem {
         texture
     }
 
-    pub fn draw(
-        &self,
-        allocators: &Allocators,
-    ) -> Arc<SecondaryAutoCommandBuffer<Arc<StandardCommandBufferAllocator>>> {
+    pub fn draw(&self, allocators: &Allocators) -> Arc<CommandBuffer> {
         let layout = self.pipeline.layout().set_layouts().get(0).unwrap();
 
         let image_view = Self::load_image(self.gfx_queue.clone(), allocators);
         let image_size = image_view.image().extent();
 
-        let desc_set = PersistentDescriptorSet::new(
-            &allocators.descriptor,
+        let desc_set = DescriptorSet::new(
+            allocators.descriptor.clone(),
             layout.clone(),
             [
                 WriteDescriptorSet::sampler(0, self.sampler.clone()),
@@ -253,43 +252,45 @@ impl ImageDrawSystem {
         )
         .unwrap();
 
-        let mut builder = AutoCommandBufferBuilder::secondary(
-            &self.command_buffer_allocator,
+        let mut builder = RecordingCommandBuffer::new(
+            self.command_buffer_allocator.clone(),
             self.gfx_queue.queue_family_index(),
-            CommandBufferUsage::MultipleSubmit,
-            CommandBufferInheritanceInfo {
-                render_pass: Some(self.subpass.clone().into()),
+            CommandBufferLevel::Primary,
+            CommandBufferBeginInfo {
+                usage: CommandBufferUsage::MultipleSubmit,
                 ..Default::default()
             },
         )
         .unwrap();
 
-        builder
-            .bind_pipeline_graphics(self.pipeline.clone())
-            .unwrap()
-            .set_viewport(
-                0,
-                [Viewport {
-                    offset: [0.0, 0.0],
-                    extent: [image_size[0] as f32, image_size[1] as f32],
-                    depth_range: 0.0..=1.0,
-                }]
-                .into_iter()
-                .collect(),
-            )
-            .unwrap()
-            .bind_vertex_buffers(0, self.vertex_buffer.clone())
-            .unwrap()
-            .bind_descriptor_sets(
-                PipelineBindPoint::Graphics,
-                self.pipeline.layout().clone(),
-                0,
-                desc_set.clone(),
-            )
-            .unwrap()
-            .draw(self.vertex_buffer.len() as u32, 1, 0, 0)
-            .unwrap();
-        builder.build().unwrap()
+        unsafe {
+            builder
+                .bind_pipeline_graphics(self.pipeline.clone())
+                .unwrap()
+                .set_viewport(
+                    0,
+                    [Viewport {
+                        offset: [0.0, 0.0],
+                        extent: [image_size[0] as f32, image_size[1] as f32],
+                        depth_range: 0.0..=1.0,
+                    }]
+                    .into_iter()
+                    .collect(),
+                )
+                .unwrap()
+                .bind_vertex_buffers(0, self.vertex_buffer.clone())
+                .unwrap()
+                .bind_descriptor_sets(
+                    PipelineBindPoint::Graphics,
+                    self.pipeline.layout().clone(),
+                    0,
+                    desc_set.clone(),
+                )
+                .unwrap()
+                .draw(self.vertex_buffer.len() as u32, 1, 0, 0)
+                .unwrap();
+        }
+        builder.end().unwrap()
     }
 }
 

@@ -7,6 +7,6 @@ edition = "2021"
 vulkano = { workspace = true }
 vulkano-util = { workspace = true }
 egui_winit_vulkano = { workspace = true }
-vulkano-shaders = "0.34.0"
+vulkano-shaders = { workspace = true }
 png = "0.17.10"
 cgmath = { workspace = true }

@@ -21,7 +21,7 @@ use csc_ui::{dock::MainDock, main_menu, style::load_style};
 
 pub fn main() {
     // Winit event loop
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
     // Vulkano context
     let vulkano_context = VulkanoContext::new(VulkanoConfig::default());
     // Vulkano windows (create one)
@@ -96,40 +96,64 @@ pub fn main() {
                     WindowEvent::ScaleFactorChanged { .. } => {
                         renderer.resize();
                     }
-                    WindowEvent::CloseRequested => {
-                        *control_flow = ControlFlow::Exit;
+                    // WindowEvent::CloseRequested => {
+                    //     *control_flow = ControlFlow::Exit;
+                    // }
+                    WindowEvent::RedrawRequested { .. } => {
+                        gui.immediate_ui(|gui| {
+                            main_menu::build_main_menu(&gui.context());
+
+                            main_dock.show(gui.context());
+                        });
+                        // Acquire swapchain future
+                        let before_future = match renderer.acquire() {
+                            Ok(future) => future,
+                            Err(vulkano::VulkanError::OutOfDate) => {
+                                renderer.resize();
+                                sync::now(vulkano_context.device().clone()).boxed()
+                            }
+                            Err(e) => panic!("Failed to acquire swapchain future: {}", e),
+                        };
+                        // Draw scene
+                        let after_scene_draw =
+                            scene_render_pipeline.render(before_future, viewer_image.clone());
+                        // Render gui
+                        let after_future =
+                            gui.draw_on_image(after_scene_draw, renderer.swapchain_image_view());
+                        // Present swapchain
+                        renderer.present(after_future, true);
                     }
                     _ => {}
                 }
             }
-            Event::RedrawRequested(window_id) if window_id == window_id => {
-                // Set immediate UI in redraw here
-                // It's a closure giving access to egui context inside which you can call anything.
-                // Here we're calling the layout of our `gui_state`.
-                gui.immediate_ui(|gui| {
-                    main_menu::build_main_menu(&gui.context());
+            // Event::WindowEvent(window_id) if window_id == window_id => {
+            //     // Set immediate UI in redraw here
+            //     // It's a closure giving access to egui context inside which you can call anything.
+            //     // Here we're calling the layout of our `gui_state`.
+            //     gui.immediate_ui(|gui| {
+            //         main_menu::build_main_menu(&gui.context());
 
-                    main_dock.show(gui.context());
-                });
-                // Acquire swapchain future
-                let before_future = match renderer.acquire() {
-                    Ok(future) => future,
-                    Err(vulkano::VulkanError::OutOfDate) => {
-                        renderer.resize();
-                        sync::now(vulkano_context.device().clone()).boxed()
-                    }
-                    Err(e) => panic!("Failed to acquire swapchain future: {}", e),
-                };
-                // Draw scene
-                let after_scene_draw =
-                    scene_render_pipeline.render(before_future, viewer_image.clone());
-                // Render gui
-                let after_future =
-                    gui.draw_on_image(after_scene_draw, renderer.swapchain_image_view());
-                // Present swapchain
-                renderer.present(after_future, true);
-            }
-            Event::MainEventsCleared => {
+            //         main_dock.show(gui.context());
+            //     });
+            //     // Acquire swapchain future
+            //     let before_future = match renderer.acquire() {
+            //         Ok(future) => future,
+            //         Err(vulkano::VulkanError::OutOfDate) => {
+            //             renderer.resize();
+            //             sync::now(vulkano_context.device().clone()).boxed()
+            //         }
+            //         Err(e) => panic!("Failed to acquire swapchain future: {}", e),
+            //     };
+            //     // Draw scene
+            //     let after_scene_draw =
+            //         scene_render_pipeline.render(before_future, viewer_image.clone());
+            //     // Render gui
+            //     let after_future =
+            //         gui.draw_on_image(after_scene_draw, renderer.swapchain_image_view());
+            //     // Present swapchain
+            //     renderer.present(after_future, true);
+            // }
+            Event::AboutToWait => {
                 renderer.window().request_redraw();
             }
             _ => (),
