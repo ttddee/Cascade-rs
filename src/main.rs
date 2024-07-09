@@ -13,7 +13,7 @@ use vulkano_util::{
 };
 use winit::{
     event::{Event, WindowEvent},
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::EventLoop,
 };
 
 use csc_engine::renderer::RenderPipeline;
@@ -82,7 +82,7 @@ pub fn main() {
 
     load_style(&mut gui.context());
 
-    event_loop.run(move |event, _, control_flow| {
+    let _ = event_loop.run(move |event, _window| {
         let renderer = windows.get_primary_renderer_mut().unwrap();
 
         match event {
@@ -106,7 +106,10 @@ pub fn main() {
                             main_dock.show(gui.context());
                         });
                         // Acquire swapchain future
-                        let before_future = match renderer.acquire() {
+
+                        let before_future = match renderer
+                            .acquire(Some(std::time::Duration::from_millis(10)), |_| {})
+                        {
                             Ok(future) => future,
                             Err(vulkano::VulkanError::OutOfDate) => {
                                 renderer.resize();
@@ -126,33 +129,6 @@ pub fn main() {
                     _ => {}
                 }
             }
-            // Event::WindowEvent(window_id) if window_id == window_id => {
-            //     // Set immediate UI in redraw here
-            //     // It's a closure giving access to egui context inside which you can call anything.
-            //     // Here we're calling the layout of our `gui_state`.
-            //     gui.immediate_ui(|gui| {
-            //         main_menu::build_main_menu(&gui.context());
-
-            //         main_dock.show(gui.context());
-            //     });
-            //     // Acquire swapchain future
-            //     let before_future = match renderer.acquire() {
-            //         Ok(future) => future,
-            //         Err(vulkano::VulkanError::OutOfDate) => {
-            //             renderer.resize();
-            //             sync::now(vulkano_context.device().clone()).boxed()
-            //         }
-            //         Err(e) => panic!("Failed to acquire swapchain future: {}", e),
-            //     };
-            //     // Draw scene
-            //     let after_scene_draw =
-            //         scene_render_pipeline.render(before_future, viewer_image.clone());
-            //     // Render gui
-            //     let after_future =
-            //         gui.draw_on_image(after_scene_draw, renderer.swapchain_image_view());
-            //     // Present swapchain
-            //     renderer.present(after_future, true);
-            // }
             Event::AboutToWait => {
                 renderer.window().request_redraw();
             }

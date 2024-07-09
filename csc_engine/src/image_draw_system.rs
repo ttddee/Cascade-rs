@@ -12,9 +12,9 @@ use std::{convert::TryInto, sync::Arc};
 use vulkano::{
     buffer::{Buffer, BufferContents, BufferCreateInfo, BufferUsage, Subbuffer},
     command_buffer::{
-        allocator::{CommandBufferAllocator, StandardCommandBufferAllocator},
-        CommandBuffer, CommandBufferBeginInfo, CommandBufferInheritanceInfo, CommandBufferLevel,
-        CommandBufferUsage, CopyBufferToImageInfo, RecordingCommandBuffer,
+        allocator::CommandBufferAllocator, CommandBuffer, CommandBufferBeginInfo,
+        CommandBufferInheritanceInfo, CommandBufferLevel, CommandBufferUsage,
+        CopyBufferToImageInfo, RecordingCommandBuffer,
     },
     descriptor_set::{DescriptorSet, WriteDescriptorSet},
     device::Queue,
@@ -255,9 +255,13 @@ impl ImageDrawSystem {
         let mut builder = RecordingCommandBuffer::new(
             self.command_buffer_allocator.clone(),
             self.gfx_queue.queue_family_index(),
-            CommandBufferLevel::Primary,
+            CommandBufferLevel::Secondary,
             CommandBufferBeginInfo {
                 usage: CommandBufferUsage::MultipleSubmit,
+                inheritance_info: Some(CommandBufferInheritanceInfo {
+                    render_pass: Some(self.subpass.clone().into()),
+                    ..Default::default()
+                }),
                 ..Default::default()
             },
         )
