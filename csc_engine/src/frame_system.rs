@@ -125,8 +125,10 @@ impl<'a> Frame<'a> {
             self.num_pass += 1;
             current_pass
         } {
-            0 => Some(Pass::Draw(DrawPass { frame: self })),
-            1 => {
+            // Execute compute pass and draw the result
+            0 => Some(Pass::Compute),
+            1 => Some(Pass::Draw(DrawPass { frame: self })),
+            2 => {
                 self.command_buffer_builder
                     .as_mut()
                     .unwrap()
