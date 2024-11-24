@@ -18,6 +18,7 @@ use vulkano::{
 use vulkano_util::context::VulkanoContext;
 
 use crate::{
+    compute_op::{ComputeOp, LoadImageOp},
     compute_system::ComputeSystem,
     frame_system::{FrameSystem, Pass},
     image_draw_system::ImageDrawSystem,
@@ -35,10 +36,13 @@ pub struct RenderPipeline {
     image_draw_system: ImageDrawSystem,
     compute_system: ComputeSystem,
     allocators: Allocators,
+    queued_operations: Vec<ComputeOp>,
 }
 
 impl RenderPipeline {
     pub fn new(queue: Arc<Queue>, image_format: Format, vulkano_context: &VulkanoContext) -> Self {
+        let mut queued_operations: Vec<ComputeOp> = Vec::new();
+
         let allocators = Allocators {
             command_buffers: Arc::new(StandardCommandBufferAllocator::new(
                 queue.device().clone(),
@@ -66,12 +70,13 @@ impl RenderPipeline {
             image_draw_system,
             compute_system,
             allocators,
+            queued_operations,
         }
     }
 
     /// Renders the pass for scene on scene images
     pub fn render(
-        &mut self,
+        &'static mut self,
         before_future: Box<dyn GpuFuture>,
         image: Arc<ImageView>,
     ) -> Box<dyn GpuFuture> {
@@ -82,10 +87,19 @@ impl RenderPipeline {
         );
         // Draw each render pass that's related to scene
         let mut after_future = None;
+
+        // Populate queued_operations here
+        self.queued_operations
+            .push(ComputeOp::LoadImage(LoadImageOp {
+                path: "../../assets/images/test.png",
+                gfx_queue: self.image_draw_system.gfx_queue.clone(),
+                allocators: &self.allocators,
+            }));
+
         while let Some(pass) = frame.next_pass() {
             match pass {
                 Pass::Compute => {
-                    self.compute_system.execute(&self.allocators);
+                    self.compute_system.execute(&self.queued_operations);
                 }
                 Pass::Draw(mut draw_pass) => {
                     let cb = self.image_draw_system.draw(&self.allocators);

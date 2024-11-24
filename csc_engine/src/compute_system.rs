@@ -16,6 +16,7 @@ use vulkano::{
     },
 };
 
+use crate::compute_op::{ComputeOp, ComputeOpTrait, LoadImageOp, SaveImageOp};
 use crate::renderer::Allocators;
 use crate::shaders;
 
@@ -91,7 +92,11 @@ impl ComputeSystem {
         }
     }
 
-    pub fn execute(&self, allocators: &Allocators) {
+    pub fn execute(&self, queued_operations: &Vec<ComputeOp>) {
+        for op in queued_operations {
+            op.run();
+        }
+
         let mut builder = RecordingCommandBuffer::new(
             self.command_buffer_allocator.clone(),
             self.compute_queue.queue_family_index(),

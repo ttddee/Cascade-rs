@@ -47,7 +47,7 @@ use vulkano::{
 use crate::{renderer::Allocators, shaders};
 
 pub struct ImageDrawSystem {
-    gfx_queue: Arc<Queue>,
+    pub gfx_queue: Arc<Queue>,
     vertex_buffer: Subbuffer<[CsVertex]>,
     pipeline: Arc<GraphicsPipeline>,
     subpass: Subpass,

@@ -19,17 +19,17 @@ use crate::renderer::Allocators;
 
 pub enum ComputeOp {
     LoadImage(LoadImageOp),
-    RunShader(RunShaderOp),
+    ProcessImage(ProcessImageOp),
     SaveImage(SaveImageOp),
 }
 
 pub struct LoadImageOp {
-    path: &'static str,
-    gfx_queue: Arc<Queue>,
-    allocators: &'static Allocators,
+    pub path: &'static str,
+    pub gfx_queue: Arc<Queue>,
+    pub allocators: &'static Allocators,
 }
 
-pub struct RunShaderOp {
+pub struct ProcessImageOp {
     shader: ShaderModule,
 }
 
@@ -37,8 +37,14 @@ pub struct SaveImageOp {
     path: &'static str,
 }
 
-trait ComputeOpTrait {
+pub trait ComputeOpTrait {
     fn run(&self) -> Arc<ImageView>;
+}
+
+impl ComputeOpTrait for ComputeOp {
+    fn run(&self) -> Arc<ImageView> {
+        todo!()
+    }
 }
 
 impl ComputeOpTrait for LoadImageOp {
