@@ -17,16 +17,16 @@ use vulkano::{
 
 use crate::renderer::Allocators;
 
-pub enum ComputeOp {
-    LoadImage(LoadImageOp),
+pub enum ComputeOp<'a> {
+    LoadImage(LoadImageOp<'a>),
     ProcessImage(ProcessImageOp),
     SaveImage(SaveImageOp),
 }
 
-pub struct LoadImageOp {
-    pub path: &'static str,
+pub struct LoadImageOp<'a> {
+    pub path: &'a str,
     pub gfx_queue: Arc<Queue>,
-    pub allocators: &'static Allocators,
+    pub allocators: &'a Allocators,
 }
 
 pub struct ProcessImageOp {
@@ -41,13 +41,7 @@ pub trait ComputeOpTrait {
     fn run(&self) -> Arc<ImageView>;
 }
 
-impl ComputeOpTrait for ComputeOp {
-    fn run(&self) -> Arc<ImageView> {
-        todo!()
-    }
-}
-
-impl ComputeOpTrait for LoadImageOp {
+impl<'a> ComputeOpTrait for LoadImageOp<'a> {
     fn run(&self) -> Arc<ImageView> {
         let png_bytes = include_bytes!("../../assets/images/test.png").as_slice();
         let decoder = png::Decoder::new(png_bytes);

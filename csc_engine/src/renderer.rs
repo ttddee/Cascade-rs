@@ -31,18 +31,17 @@ pub struct Allocators {
     pub descriptor: Arc<dyn DescriptorSetAllocator>,
 }
 
-pub struct RenderPipeline {
+pub struct RenderPipeline<'a> {
     frame_system: FrameSystem,
     image_draw_system: ImageDrawSystem,
     compute_system: ComputeSystem,
     allocators: Allocators,
-    queued_operations: Vec<ComputeOp>,
+    queued_operations: Vec<ComputeOp<'a>>,
+    current_image: Option<Arc<ImageView>>,
 }
 
-impl RenderPipeline {
+impl<'a> RenderPipeline<'a> {
     pub fn new(queue: Arc<Queue>, image_format: Format, vulkano_context: &VulkanoContext) -> Self {
-        let mut queued_operations: Vec<ComputeOp> = Vec::new();
-
         let allocators = Allocators {
             command_buffers: Arc::new(StandardCommandBufferAllocator::new(
                 queue.device().clone(),
@@ -65,18 +64,23 @@ impl RenderPipeline {
         let compute_system =
             ComputeSystem::new(vulkano_context.compute_queue().clone(), &allocators);
 
+        let mut queued_operations: Vec<ComputeOp> = Vec::new();
+
+        let current_image = None;
+
         Self {
             frame_system,
             image_draw_system,
             compute_system,
             allocators,
             queued_operations,
+            current_image,
         }
     }
 
     /// Renders the pass for scene on scene images
     pub fn render(
-        &'static mut self,
+        &'a mut self,
         before_future: Box<dyn GpuFuture>,
         image: Arc<ImageView>,
     ) -> Box<dyn GpuFuture> {
@@ -101,10 +105,14 @@ impl RenderPipeline {
                 Pass::Compute => {
                     self.compute_system.execute(&self.queued_operations);
                 }
-                Pass::Draw(mut draw_pass) => {
-                    let cb = self.image_draw_system.draw(&self.allocators);
-                    draw_pass.execute::<CommandBuffer>(cb);
-                }
+                Pass::Draw(mut draw_pass) => match &self.current_image {
+                    Some(image) => {
+                        let cb = self.image_draw_system.draw(&self.allocators, image.clone());
+                        draw_pass.execute::<CommandBuffer>(cb);
+                    }
+                    // We have no current image, need to clear the screen
+                    None => {}
+                },
                 Pass::Finished(af) => {
                     after_future = Some(af);
                 }

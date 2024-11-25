@@ -235,10 +235,10 @@ impl ImageDrawSystem {
         texture
     }
 
-    pub fn draw(&self, allocators: &Allocators) -> Arc<CommandBuffer> {
+    pub fn draw(&self, allocators: &Allocators, image: Arc<ImageView>) -> Arc<CommandBuffer> {
         let layout = self.pipeline.layout().set_layouts().get(0).unwrap();
 
-        let image_view = Self::load_image(self.gfx_queue.clone(), allocators);
+        let image_view = image; //Self::load_image(self.gfx_queue.clone(), allocators);
         let image_size = image_view.image().extent();
 
         let desc_set = DescriptorSet::new(

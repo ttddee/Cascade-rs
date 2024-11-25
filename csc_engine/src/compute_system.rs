@@ -94,39 +94,42 @@ impl ComputeSystem {
 
     pub fn execute(&self, queued_operations: &Vec<ComputeOp>) {
         for op in queued_operations {
-            op.run();
+            match op {
+                ComputeOp::LoadImage(load_image_op) => load_image_op.run(),
+                _ => {}
+            }
         }
 
-        let mut builder = RecordingCommandBuffer::new(
-            self.command_buffer_allocator.clone(),
-            self.compute_queue.queue_family_index(),
-            CommandBufferLevel::Primary,
-            CommandBufferBeginInfo {
-                usage: CommandBufferUsage::OneTimeSubmit,
-                ..Default::default()
-            },
-        )
-        .unwrap();
+        // let mut builder = RecordingCommandBuffer::new(
+        //     self.command_buffer_allocator.clone(),
+        //     self.compute_queue.queue_family_index(),
+        //     CommandBufferLevel::Primary,
+        //     CommandBufferBeginInfo {
+        //         usage: CommandBufferUsage::OneTimeSubmit,
+        //         ..Default::default()
+        //     },
+        // )
+        // .unwrap();
 
-        builder
-            .bind_pipeline_compute(self.pipeline.clone())
-            .unwrap()
-            .bind_descriptor_sets(
-                PipelineBindPoint::Compute,
-                self.pipeline.layout().clone(),
-                0,
-                self.descriptor_set.clone(),
-            )
-            .unwrap();
+        // builder
+        //     .bind_pipeline_compute(self.pipeline.clone())
+        //     .unwrap()
+        //     .bind_descriptor_sets(
+        //         PipelineBindPoint::Compute,
+        //         self.pipeline.layout().clone(),
+        //         0,
+        //         self.descriptor_set.clone(),
+        //     )
+        //     .unwrap();
 
-        // The command buffer only does one thing: execute the compute pipeline. This is called a
-        // *dispatch* operation.
-        unsafe {
-            builder.dispatch([1024, 1, 1]).unwrap();
-        }
+        // // The command buffer only does one thing: execute the compute pipeline. This is called a
+        // // *dispatch* operation.
+        // unsafe {
+        //     builder.dispatch([1024, 1, 1]).unwrap();
+        // }
 
-        // Finish building the command buffer by calling `build`.
-        let cb = builder.end().unwrap();
-        cb.execute(self.compute_queue.clone());
+        // // Finish building the command buffer by calling `build`.
+        // let cb = builder.end().unwrap();
+        // cb.execute(self.compute_queue.clone());
     }
 }

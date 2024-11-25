@@ -1,9 +1,12 @@
 #![allow(clippy::eq_op)]
 
+use std::sync::Arc;
+
 use egui_winit_vulkano::{Gui, GuiConfig};
 use vulkano::{
     image::{view::ImageView, Image, ImageCreateInfo, ImageType, ImageUsage},
     memory::allocator::AllocationCreateInfo,
+    pipeline,
     sync::{self, GpuFuture},
 };
 use vulkano_util::{
@@ -72,12 +75,6 @@ pub fn main() {
     )
     .unwrap();
 
-    let mut scene_render_pipeline = RenderPipeline::new(
-        vulkano_context.graphics_queue().clone(),
-        DEFAULT_IMAGE_FORMAT,
-        &vulkano_context,
-    );
-
     let mut main_dock = MainDock::new(&mut gui, viewer_image.clone(), scene_view_size);
 
     load_style(&mut gui.context());
@@ -118,6 +115,11 @@ pub fn main() {
                             Err(e) => panic!("Failed to acquire swapchain future: {}", e),
                         };
                         // Draw scene
+                        let mut scene_render_pipeline = RenderPipeline::new(
+                            vulkano_context.graphics_queue().clone(),
+                            DEFAULT_IMAGE_FORMAT,
+                            &vulkano_context,
+                        );
                         let after_scene_draw =
                             scene_render_pipeline.render(before_future, viewer_image.clone());
                         // Render gui
