@@ -20,7 +20,7 @@ use crate::renderer::Allocators;
 pub enum ComputeOp<'a> {
     LoadImage(LoadImageOp<'a>),
     ProcessImage(ProcessImageOp),
-    SaveImage(SaveImageOp),
+    SaveImage(SaveImageOp<'a>),
 }
 
 pub struct LoadImageOp<'a> {
@@ -33,16 +33,12 @@ pub struct ProcessImageOp {
     shader: ShaderModule,
 }
 
-pub struct SaveImageOp {
-    path: &'static str,
+pub struct SaveImageOp<'a> {
+    path: &'a str,
 }
 
-pub trait ComputeOpTrait {
-    fn run(&self) -> Arc<ImageView>;
-}
-
-impl<'a> ComputeOpTrait for LoadImageOp<'a> {
-    fn run(&self) -> Arc<ImageView> {
+impl<'a> LoadImageOp<'a> {
+    pub fn run(&self, mut result_image: Arc<ImageView>) {
         let png_bytes = include_bytes!("../../assets/images/test.png").as_slice();
         let decoder = png::Decoder::new(png_bytes);
         let mut reader = decoder.read_info().unwrap();
@@ -77,7 +73,7 @@ impl<'a> ComputeOpTrait for LoadImageOp<'a> {
         )
         .unwrap();
 
-        let texture = {
+        result_image = {
             reader
                 .next_frame(&mut upload_buffer.write().unwrap())
                 .unwrap();
@@ -110,6 +106,18 @@ impl<'a> ComputeOpTrait for LoadImageOp<'a> {
             .unwrap()
             .boxed();
 
-        texture
+        //result_image = texture.clone();
+    }
+}
+
+impl ProcessImageOp {
+    pub fn run(&self, bg_image: Arc<ImageView>) {
+        // TODO
+    }
+}
+
+impl<'a> SaveImageOp<'a> {
+    pub fn run(&self, bg_image: Arc<ImageView>) {
+        // TODO
     }
 }

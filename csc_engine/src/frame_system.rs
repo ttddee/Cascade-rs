@@ -122,7 +122,8 @@ impl<'a> Frame<'a> {
     pub fn next_pass<'f>(&'f mut self) -> Option<Pass<'f, 'a>> {
         match {
             let current_pass = self.num_pass;
-            self.num_pass += 1;
+            // TODO: Need the correct number of passes here
+            self.num_pass += 2;
             current_pass
         } {
             // Execute compute pass and draw the result

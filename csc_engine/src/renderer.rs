@@ -37,7 +37,6 @@ pub struct RenderPipeline<'a> {
     compute_system: ComputeSystem,
     allocators: Allocators,
     queued_operations: Vec<ComputeOp<'a>>,
-    current_image: Option<Arc<ImageView>>,
 }
 
 impl<'a> RenderPipeline<'a> {
@@ -66,15 +65,12 @@ impl<'a> RenderPipeline<'a> {
 
         let mut queued_operations: Vec<ComputeOp> = Vec::new();
 
-        let current_image = None;
-
         Self {
             frame_system,
             image_draw_system,
             compute_system,
             allocators,
             queued_operations,
-            current_image,
         }
     }
 
@@ -92,7 +88,8 @@ impl<'a> RenderPipeline<'a> {
         // Draw each render pass that's related to scene
         let mut after_future = None;
 
-        // Populate queued_operations here
+        // COMPUTE OP BUILDER
+        // Populate queued_operations with data from nodes
         self.queued_operations
             .push(ComputeOp::LoadImage(LoadImageOp {
                 path: "../../assets/images/test.png",
@@ -103,16 +100,13 @@ impl<'a> RenderPipeline<'a> {
         while let Some(pass) = frame.next_pass() {
             match pass {
                 Pass::Compute => {
-                    self.compute_system.execute(&self.queued_operations);
+                    self.compute_system
+                        .execute(&self.queued_operations, image.clone());
                 }
-                Pass::Draw(mut draw_pass) => match &self.current_image {
-                    Some(image) => {
-                        let cb = self.image_draw_system.draw(&self.allocators, image.clone());
-                        draw_pass.execute::<CommandBuffer>(cb);
-                    }
-                    // We have no current image, need to clear the screen
-                    None => {}
-                },
+                Pass::Draw(mut draw_pass) => {
+                    let cb = self.image_draw_system.draw(&self.allocators, image.clone());
+                    draw_pass.execute::<CommandBuffer>(cb);
+                }
                 Pass::Finished(af) => {
                     after_future = Some(af);
                 }

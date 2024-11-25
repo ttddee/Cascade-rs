@@ -8,6 +8,7 @@ use vulkano::{
     },
     descriptor_set::{DescriptorSet, WriteDescriptorSet},
     device::Queue,
+    image::view::ImageView,
     memory::allocator::{AllocationCreateInfo, MemoryTypeFilter},
     pipeline::{
         compute::ComputePipelineCreateInfo, layout::PipelineDescriptorSetLayoutCreateInfo,
@@ -16,7 +17,7 @@ use vulkano::{
     },
 };
 
-use crate::compute_op::{ComputeOp, ComputeOpTrait, LoadImageOp, SaveImageOp};
+use crate::compute_op::{ComputeOp, LoadImageOp, SaveImageOp};
 use crate::renderer::Allocators;
 use crate::shaders;
 
@@ -92,11 +93,14 @@ impl ComputeSystem {
         }
     }
 
-    pub fn execute(&self, queued_operations: &Vec<ComputeOp>) {
+    pub fn execute(&self, queued_operations: &Vec<ComputeOp>, result_image: Arc<ImageView>) {
         for op in queued_operations {
             match op {
-                ComputeOp::LoadImage(load_image_op) => load_image_op.run(),
-                _ => {}
+                ComputeOp::LoadImage(load_image_op) => load_image_op.run(result_image.clone()),
+                ComputeOp::ProcessImage(process_image_op) => {
+                    process_image_op.run(result_image.clone())
+                }
+                ComputeOp::SaveImage(save_image_op) => save_image_op.run(result_image.clone()),
             }
         }
 
