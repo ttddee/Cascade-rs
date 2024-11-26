@@ -78,7 +78,7 @@ impl<'a> RenderPipeline<'a> {
     pub fn render(
         &'a mut self,
         before_future: Box<dyn GpuFuture>,
-        image: Arc<ImageView>,
+        mut image: Arc<ImageView>,
     ) -> Box<dyn GpuFuture> {
         let mut frame = self.frame_system.frame(
             before_future,
@@ -100,7 +100,8 @@ impl<'a> RenderPipeline<'a> {
         while let Some(pass) = frame.next_pass() {
             match pass {
                 Pass::Compute => {
-                    self.compute_system
+                    image = self
+                        .compute_system
                         .execute(&self.queued_operations, image.clone());
                 }
                 Pass::Draw(mut draw_pass) => {

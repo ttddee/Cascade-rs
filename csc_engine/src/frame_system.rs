@@ -123,7 +123,7 @@ impl<'a> Frame<'a> {
         match {
             let current_pass = self.num_pass;
             // TODO: Need the correct number of passes here
-            self.num_pass += 2;
+            self.num_pass += 1;
             current_pass
         } {
             // Execute compute pass and draw the result

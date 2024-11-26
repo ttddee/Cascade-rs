@@ -25,7 +25,6 @@ pub struct ComputeSystem {
     compute_queue: Arc<Queue>,
     pipeline: Arc<ComputePipeline>,
     command_buffer_allocator: Arc<dyn CommandBufferAllocator>,
-    descriptor_set: Arc<DescriptorSet>,
 }
 
 impl ComputeSystem {
@@ -51,89 +50,32 @@ impl ComputeSystem {
             .unwrap()
         };
 
-        // We start by creating the buffer that will store the data.
-        let data_buffer = Buffer::from_iter(
-            allocators.memory.clone(),
-            BufferCreateInfo {
-                usage: BufferUsage::STORAGE_BUFFER,
-                ..Default::default()
-            },
-            AllocationCreateInfo {
-                memory_type_filter: MemoryTypeFilter::PREFER_DEVICE
-                    | MemoryTypeFilter::HOST_RANDOM_ACCESS,
-                ..Default::default()
-            },
-            // Iterator that produces the data.
-            0..65536u32,
-        )
-        .unwrap();
-
-        // In order to let the shader access the buffer, we need to build a *descriptor set* that
-        // contains the buffer.
-        //
-        // The resources that we bind to the descriptor set must match the resources expected by the
-        // pipeline which we pass as the first parameter.
-        //
-        // If you want to run the pipeline on multiple different buffers, you need to create multiple
-        // descriptor sets that each contain the buffer you want to run the shader on.
-        let layout = pipeline.layout().set_layouts()[0].clone();
-        let descriptor_set = DescriptorSet::new(
-            allocators.descriptor.clone(),
-            layout.clone(),
-            [WriteDescriptorSet::buffer(0, data_buffer.clone())],
-            [],
-        )
-        .unwrap();
-
         ComputeSystem {
             compute_queue,
             pipeline,
             command_buffer_allocator: allocators.command_buffers.clone(),
-            descriptor_set,
         }
     }
 
-    pub fn execute(&self, queued_operations: &Vec<ComputeOp>, result_image: Arc<ImageView>) {
+    pub fn execute(
+        &self,
+        queued_operations: &Vec<ComputeOp>,
+        mut result_image: Arc<ImageView>,
+    ) -> Arc<ImageView> {
         for op in queued_operations {
             match op {
-                ComputeOp::LoadImage(load_image_op) => load_image_op.run(result_image.clone()),
-                ComputeOp::ProcessImage(process_image_op) => {
-                    process_image_op.run(result_image.clone())
+                ComputeOp::LoadImage(load_image_op) => {
+                    result_image = load_image_op.run(result_image.clone())
                 }
-                ComputeOp::SaveImage(save_image_op) => save_image_op.run(result_image.clone()),
-            }
+                ComputeOp::ProcessImage(process_image_op) => {
+                    result_image = process_image_op.run(result_image.clone())
+                }
+                ComputeOp::SaveImage(save_image_op) => {
+                    result_image = save_image_op.run(result_image.clone())
+                }
+            };
         }
 
-        // let mut builder = RecordingCommandBuffer::new(
-        //     self.command_buffer_allocator.clone(),
-        //     self.compute_queue.queue_family_index(),
-        //     CommandBufferLevel::Primary,
-        //     CommandBufferBeginInfo {
-        //         usage: CommandBufferUsage::OneTimeSubmit,
-        //         ..Default::default()
-        //     },
-        // )
-        // .unwrap();
-
-        // builder
-        //     .bind_pipeline_compute(self.pipeline.clone())
-        //     .unwrap()
-        //     .bind_descriptor_sets(
-        //         PipelineBindPoint::Compute,
-        //         self.pipeline.layout().clone(),
-        //         0,
-        //         self.descriptor_set.clone(),
-        //     )
-        //     .unwrap();
-
-        // // The command buffer only does one thing: execute the compute pipeline. This is called a
-        // // *dispatch* operation.
-        // unsafe {
-        //     builder.dispatch([1024, 1, 1]).unwrap();
-        // }
-
-        // // Finish building the command buffer by calling `build`.
-        // let cb = builder.end().unwrap();
-        // cb.execute(self.compute_queue.clone());
+        result_image
     }
 }

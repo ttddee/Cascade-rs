@@ -38,7 +38,7 @@ pub struct SaveImageOp<'a> {
 }
 
 impl<'a> LoadImageOp<'a> {
-    pub fn run(&self, mut result_image: Arc<ImageView>) {
+    pub fn run(&self, result_image: Arc<ImageView>) -> Arc<ImageView> {
         let png_bytes = include_bytes!("../../assets/images/test.png").as_slice();
         let decoder = png::Decoder::new(png_bytes);
         let mut reader = decoder.read_info().unwrap();
@@ -73,7 +73,7 @@ impl<'a> LoadImageOp<'a> {
         )
         .unwrap();
 
-        result_image = {
+        let texture = {
             reader
                 .next_frame(&mut upload_buffer.write().unwrap())
                 .unwrap();
@@ -106,18 +106,20 @@ impl<'a> LoadImageOp<'a> {
             .unwrap()
             .boxed();
 
-        //result_image = texture.clone();
+        texture
     }
 }
 
 impl ProcessImageOp {
-    pub fn run(&self, bg_image: Arc<ImageView>) {
+    pub fn run(&self, bg_image: Arc<ImageView>) -> Arc<ImageView> {
         // TODO
+        bg_image
     }
 }
 
 impl<'a> SaveImageOp<'a> {
-    pub fn run(&self, bg_image: Arc<ImageView>) {
+    pub fn run(&self, bg_image: Arc<ImageView>) -> Arc<ImageView> {
         // TODO
+        bg_image
     }
 }

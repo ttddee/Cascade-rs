@@ -164,77 +164,6 @@ impl ImageDrawSystem {
         }
     }
 
-    fn load_image(gfx_queue: Arc<Queue>, allocators: &Allocators) -> Arc<ImageView> {
-        let png_bytes = include_bytes!("../../assets/images/test.png").as_slice();
-        let decoder = png::Decoder::new(png_bytes);
-        let mut reader = decoder.read_info().unwrap();
-        let info = reader.info();
-        let extent = [info.width, info.height, 1];
-
-        let upload_buffer = Buffer::new_slice(
-            allocators.memory.clone(),
-            BufferCreateInfo {
-                usage: BufferUsage::TRANSFER_SRC,
-                ..Default::default()
-            },
-            AllocationCreateInfo {
-                memory_type_filter: MemoryTypeFilter::PREFER_HOST
-                    | MemoryTypeFilter::HOST_SEQUENTIAL_WRITE,
-                ..Default::default()
-            },
-            (extent[0] * extent[1] * 4) as DeviceSize,
-        )
-        .unwrap();
-
-        let image = Image::new(
-            allocators.memory.clone(),
-            ImageCreateInfo {
-                image_type: ImageType::Dim2d,
-                format: Format::R8G8B8A8_SRGB,
-                extent,
-                usage: ImageUsage::TRANSFER_DST | ImageUsage::SAMPLED,
-                ..Default::default()
-            },
-            AllocationCreateInfo::default(),
-        )
-        .unwrap();
-
-        let texture = {
-            reader
-                .next_frame(&mut upload_buffer.write().unwrap())
-                .unwrap();
-
-            ImageView::new_default(image.clone()).unwrap()
-        };
-
-        let mut uploads = RecordingCommandBuffer::new(
-            allocators.command_buffers.clone(),
-            gfx_queue.queue_family_index(),
-            CommandBufferLevel::Primary,
-            CommandBufferBeginInfo {
-                usage: CommandBufferUsage::OneTimeSubmit,
-                ..Default::default()
-            },
-        )
-        .unwrap();
-
-        uploads
-            .copy_buffer_to_image(CopyBufferToImageInfo::buffer_image(
-                upload_buffer,
-                image.clone(),
-            ))
-            .unwrap();
-
-        uploads
-            .end()
-            .unwrap()
-            .execute(gfx_queue.clone())
-            .unwrap()
-            .boxed();
-
-        texture
-    }
-
     pub fn draw(&self, allocators: &Allocators, image: Arc<ImageView>) -> Arc<CommandBuffer> {
         let layout = self.pipeline.layout().set_layouts().get(0).unwrap();
 
@@ -294,6 +223,7 @@ impl ImageDrawSystem {
                 .draw(self.vertex_buffer.len() as u32, 1, 0, 0)
                 .unwrap();
         }
+
         builder.end().unwrap()
     }
 }
