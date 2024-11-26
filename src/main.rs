@@ -1,12 +1,11 @@
 #![allow(clippy::eq_op)]
 
-use std::sync::Arc;
-
+use csc_core::{graph_model::NodeGraphState, node_graph::NodeGraph};
+use egui_node_graph::GraphEditorState;
 use egui_winit_vulkano::{Gui, GuiConfig};
 use vulkano::{
     image::{view::ImageView, Image, ImageCreateInfo, ImageType, ImageUsage},
     memory::allocator::AllocationCreateInfo,
-    pipeline,
     sync::{self, GpuFuture},
 };
 use vulkano_util::{
@@ -40,6 +39,11 @@ pub fn main() {
         ci.image_format = vulkano::format::Format::B8G8R8A8_UNORM;
         ci.min_image_count = ci.min_image_count.max(2);
     });
+
+    let mut node_graph = NodeGraph {
+        graph_state: GraphEditorState::new(1.0),
+        user_state: NodeGraphState::default(),
+    };
 
     // Create gui as main render pass (no overlay means it clears the image each frame)
     let mut gui = {
@@ -75,9 +79,10 @@ pub fn main() {
     )
     .unwrap();
 
-    let mut main_dock = MainDock::new(&mut gui, viewer_image.clone(), scene_view_size);
-
     load_style(&mut gui.context());
+
+    let scene_texture_id = gui.register_user_image_view(viewer_image.clone(), Default::default());
+    let mut main_dock = MainDock::new(&gui, &mut node_graph, scene_view_size, scene_texture_id);
 
     let _ = event_loop.run(move |event, _window| {
         let renderer = windows.get_primary_renderer_mut().unwrap();

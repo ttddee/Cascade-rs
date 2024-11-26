@@ -1,24 +1,19 @@
 use std::{collections::HashSet, sync::Arc};
 
-use csc_core::{
-    graph_model::NodeGraphState,
-    node_data::{AllNodeTemplates, GraphNodeData, NodeType},
-    node_model::{GraphDataType, GraphValueType},
-};
-use egui::{load::SizedTexture, CentralPanel, Frame, ImageSource, Ui, WidgetText};
+use csc_core::{node_data::AllNodeTemplates, node_graph::NodeGraph};
+use egui::{load::SizedTexture, CentralPanel, Frame, ImageSource, TextureId, Ui, WidgetText};
 use egui_dock::{AllowedSplits, DockArea, DockState, NodeIndex, Style, SurfaceIndex, TabViewer};
-use egui_node_graph::GraphEditorState;
 use egui_winit_vulkano::Gui;
 use vulkano::image::view::ImageView;
 
 use crate::properties_panel::PropertiesPanel;
 
-pub struct MainDock {
-    context: DockContext,
+pub struct MainDock<'a> {
+    context: DockContext<'a>,
     tree: DockState<String>,
 }
 
-impl MainDock {
+impl<'a> MainDock<'a> {
     pub fn show(&mut self, context: egui::Context) {
         CentralPanel::default()
             .frame(Frame::central_panel(&context.style()).inner_margin(0.))
@@ -41,7 +36,12 @@ impl MainDock {
                     .show_inside(ui, &mut self.context);
             });
     }
-    pub fn new(gui: &mut Gui, scene_image: Arc<ImageView>, scene_view_size: [u32; 2]) -> Self {
+    pub fn new(
+        gui: &Gui,
+        node_graph: &'a mut NodeGraph,
+        scene_view_size: [u32; 2],
+        scene_texture_id: TextureId,
+    ) -> Self {
         let mut dock_state = DockState::new(vec!["Viewer".to_owned()]);
 
         let [a, _] = dock_state.main_surface_mut().split_below(
@@ -75,11 +75,10 @@ impl MainDock {
             draggable_tabs: true,
             show_tab_name_on_hover: false,
             allowed_splits: AllowedSplits::default(),
-            scene_texture_id: gui.register_user_image_view(scene_image, Default::default()),
+            scene_texture_id: scene_texture_id,
             scene_view_size,
             egui_context: gui.context(),
-            graph_state: GraphEditorState::new(1.0),
-            user_state: NodeGraphState::default(),
+            node_graph: node_graph,
             properties_panel: PropertiesPanel::default(),
         };
 
@@ -90,7 +89,7 @@ impl MainDock {
     }
 }
 
-struct DockContext {
+struct DockContext<'a> {
     pub style: Option<Style>,
     open_tabs: HashSet<String>,
 
@@ -104,13 +103,11 @@ struct DockContext {
     scene_texture_id: egui::TextureId,
     scene_view_size: [u32; 2],
     egui_context: egui::Context,
-    graph_state:
-        GraphEditorState<GraphNodeData, GraphDataType, GraphValueType, NodeType, NodeGraphState>,
-    user_state: NodeGraphState,
+    node_graph: &'a mut NodeGraph,
     properties_panel: PropertiesPanel,
 }
 
-impl DockContext {
+impl DockContext<'_> {
     fn viewer(&mut self, ui: &mut Ui) {
         egui::Frame::none()
             .inner_margin(0.)
@@ -127,21 +124,21 @@ impl DockContext {
     }
 
     fn node_graph(&mut self, ui: &mut Ui) {
-        let _graph_response = self.graph_state.draw_graph_editor(
+        let _graph_response = self.node_graph.graph_state.draw_graph_editor(
             ui,
             AllNodeTemplates,
-            &mut self.user_state,
+            &mut self.node_graph.user_state,
             Vec::default(),
         );
     }
 
     fn properties_panel(&mut self, ui: &mut Ui) {
         self.properties_panel
-            .show(ui, &self.egui_context, &mut self.graph_state);
+            .show(ui, &self.egui_context, &mut self.node_graph.graph_state);
     }
 }
 
-impl TabViewer for DockContext {
+impl TabViewer for DockContext<'_> {
     type Tab = String;
 
     fn title(&mut self, tab: &mut Self::Tab) -> WidgetText {
