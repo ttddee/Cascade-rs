@@ -31,15 +31,14 @@ pub struct Allocators {
     pub descriptor: Arc<dyn DescriptorSetAllocator>,
 }
 
-pub struct RenderPipeline<'a> {
+pub struct RenderPipeline {
     frame_system: FrameSystem,
     image_draw_system: ImageDrawSystem,
     compute_system: ComputeSystem,
     allocators: Allocators,
-    queued_operations: Vec<ComputeOp<'a>>,
 }
 
-impl<'a> RenderPipeline<'a> {
+impl RenderPipeline {
     pub fn new(queue: Arc<Queue>, image_format: Format, vulkano_context: &VulkanoContext) -> Self {
         let allocators = Allocators {
             command_buffers: Arc::new(StandardCommandBufferAllocator::new(
@@ -63,19 +62,16 @@ impl<'a> RenderPipeline<'a> {
         let compute_system =
             ComputeSystem::new(vulkano_context.compute_queue().clone(), &allocators);
 
-        let mut queued_operations: Vec<ComputeOp> = Vec::new();
-
         Self {
             frame_system,
             image_draw_system,
             compute_system,
             allocators,
-            queued_operations,
         }
     }
 
     /// Renders the pass for scene on scene images
-    pub fn render(
+    pub fn render<'a>(
         &'a mut self,
         before_future: Box<dyn GpuFuture>,
         mut image: Arc<ImageView>,
@@ -89,20 +85,20 @@ impl<'a> RenderPipeline<'a> {
         let mut after_future = None;
 
         // COMPUTE OP BUILDER
-        // Populate queued_operations with data from nodes
-        self.queued_operations
-            .push(ComputeOp::LoadImage(LoadImageOp {
-                path: "../../assets/images/test.png",
-                gfx_queue: self.image_draw_system.gfx_queue.clone(),
-                allocators: &self.allocators,
-            }));
+        // TODO: Get vec of nodes from the graph
+
+        // Populate ops_queue with data from nodes
+        let mut ops_queue: Vec<ComputeOp> = Vec::new();
+        ops_queue.push(ComputeOp::LoadImage(LoadImageOp {
+            path: "../../assets/images/test.png",
+            gfx_queue: self.image_draw_system.gfx_queue.clone(),
+            allocators: &self.allocators,
+        }));
 
         while let Some(pass) = frame.next_pass() {
             match pass {
                 Pass::Compute => {
-                    image = self
-                        .compute_system
-                        .execute(&self.queued_operations, image.clone());
+                    image = self.compute_system.execute(&ops_queue, image.clone());
                 }
                 Pass::Draw(mut draw_pass) => {
                     let cb = self.image_draw_system.draw(&self.allocators, image.clone());
