@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+vulkano = { workspace = true }
 egui = { workspace = true }
 ecolor = { workspace = true }
 egui_node_graph = { workspace = true }

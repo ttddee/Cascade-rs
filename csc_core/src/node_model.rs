@@ -17,13 +17,12 @@ type MyGraph = Graph<GraphNodeData, GraphDataType, GraphValueType>;
 /// attaching two ports together. The graph UI will make sure to not allow
 /// attaching incompatible datatypes.
 #[derive(PartialEq, Eq)]
-#[cfg_attr(feature = "persistence", derive(serde::Serialize, serde::Deserialize))]
 pub enum GraphDataType {
     RGB,
     Alpha,
 }
 
-// A trait for the data types, to tell the library how to display them
+/// A trait for the data types, to tell the library how to display them
 impl DataTypeTrait<NodeGraphState> for GraphDataType {
     fn data_type_color(&self, _user_state: &mut NodeGraphState) -> ecolor::Color32 {
         match self {
@@ -40,8 +39,8 @@ impl DataTypeTrait<NodeGraphState> for GraphDataType {
     }
 }
 
-// A trait for the node kinds, which tells the library how to build new nodes
-// from the templates in the node finder.
+/// A trait for the node kinds, which tells the library how to build new nodes
+/// from the templates in the node finder.
 impl NodeTemplateTrait for NodeType {
     type NodeData = GraphNodeData;
     type DataType = GraphDataType;

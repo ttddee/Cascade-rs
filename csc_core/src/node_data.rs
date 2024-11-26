@@ -1,6 +1,7 @@
-use std::borrow::Cow;
+use std::{borrow::Cow, sync::Arc};
 
 use egui_node_graph::{NodeDataTrait, NodeTemplateIter};
+use vulkano::image::view::ImageView;
 
 use crate::{
     graph_model::NodeGraphState,
@@ -9,6 +10,7 @@ use crate::{
 };
 
 /// The available categories that are shown in the node finder.
+/// Each node must belong to exactly one category.
 #[derive(Clone, Copy, Eq, PartialEq, Hash)]
 pub enum NodeCategory {
     IO,
@@ -26,7 +28,6 @@ impl NodeCategory {
 
 /// The types of nodes.
 #[derive(Clone, Copy, PartialEq, Eq)]
-#[cfg_attr(feature = "persistence", derive(serde::Serialize, serde::Deserialize))]
 pub enum NodeType {
     Blur,
     Read,
@@ -34,6 +35,7 @@ pub enum NodeType {
 }
 
 impl NodeType {
+    /// The display name of a node.
     pub fn name(&self) -> Cow<'_, str> {
         match self {
             NodeType::Blur => Cow::Borrowed("Blur"),
@@ -41,7 +43,7 @@ impl NodeType {
             NodeType::Write => Cow::Borrowed("Write"),
         }
     }
-
+    /// The category a node belongs to.
     pub fn category_name(&self) -> &'static str {
         match self {
             NodeType::Blur => NodeCategory::name(&NodeCategory::Filters),
@@ -49,7 +51,7 @@ impl NodeType {
             NodeType::Write => NodeCategory::name(&NodeCategory::IO),
         }
     }
-
+    /// The types of graph inputs the node has.
     pub fn inputs(&self) -> Vec<GraphDataType> {
         match self {
             NodeType::Blur => vec![GraphDataType::RGB, GraphDataType::Alpha],
@@ -57,7 +59,7 @@ impl NodeType {
             NodeType::Write => vec![GraphDataType::RGB, GraphDataType::Alpha],
         }
     }
-
+    /// The types of graph outputs the node has.
     pub fn outputs(&self) -> Vec<GraphDataType> {
         match self {
             NodeType::Blur => vec![GraphDataType::RGB, GraphDataType::Alpha],
@@ -67,12 +69,12 @@ impl NodeType {
     }
 }
 
-/// GraphNodeData holds all the elements that define a node.
-/// This way new nodes can be added easily by editing this file.
-#[cfg_attr(feature = "persistence", derive(serde::Serialize, serde::Deserialize))]
+/// GraphNodeData holds the actual data of a node.
+/// Anything that can change during runtime goes here.
 pub struct GraphNodeData {
     pub node_type: NodeType,
     pub properties: Vec<NodeProperty>,
+    pub cached_image: Option<Arc<ImageView>>,
 }
 
 impl GraphNodeData {
@@ -88,14 +90,17 @@ impl GraphNodeData {
                         0,
                     ),
                 ],
+                cached_image: None,
             },
             NodeType::Read => GraphNodeData {
                 node_type,
                 properties: vec![NodeProperty::new_path_list()],
+                cached_image: None,
             },
             NodeType::Write => GraphNodeData {
                 node_type,
                 properties: vec![],
+                cached_image: None,
             },
         }
     }
