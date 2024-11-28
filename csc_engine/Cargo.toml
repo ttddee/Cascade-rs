@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+csc_core = { path = "../csc_core" }
 vulkano = { workspace = true }
 vulkano-util = { workspace = true }
 egui_winit_vulkano = { workspace = true }

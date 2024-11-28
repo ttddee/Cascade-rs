@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{cell::RefCell, rc::Rc, sync::Arc};
 
 use vulkano::{
     command_buffer::{
@@ -24,6 +24,8 @@ use crate::{
     image_draw_system::ImageDrawSystem,
 };
 
+use csc_core::node_graph::NodeGraph;
+
 #[derive(Clone)]
 pub struct Allocators {
     pub command_buffers: Arc<dyn CommandBufferAllocator>,
@@ -36,10 +38,16 @@ pub struct RenderPipeline {
     image_draw_system: ImageDrawSystem,
     compute_system: ComputeSystem,
     allocators: Allocators,
+    node_graph: Rc<RefCell<NodeGraph>>,
 }
 
 impl RenderPipeline {
-    pub fn new(queue: Arc<Queue>, image_format: Format, vulkano_context: &VulkanoContext) -> Self {
+    pub fn new(
+        queue: Arc<Queue>,
+        image_format: Format,
+        vulkano_context: &VulkanoContext,
+        node_graph: Rc<RefCell<NodeGraph>>,
+    ) -> Self {
         let allocators = Allocators {
             command_buffers: Arc::new(StandardCommandBufferAllocator::new(
                 queue.device().clone(),
@@ -67,12 +75,13 @@ impl RenderPipeline {
             image_draw_system,
             compute_system,
             allocators,
+            node_graph,
         }
     }
 
     /// Renders the pass for scene on scene images
-    pub fn render<'a>(
-        &'a mut self,
+    pub fn render(
+        &mut self,
         before_future: Box<dyn GpuFuture>,
         mut image: Arc<ImageView>,
     ) -> Box<dyn GpuFuture> {
