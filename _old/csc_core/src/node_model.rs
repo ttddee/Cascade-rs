@@ -24,7 +24,7 @@ pub enum GraphDataType {
 
 /// A trait for the data types, to tell the library how to display them
 impl DataTypeTrait<NodeGraphState> for GraphDataType {
-    fn data_type_color(&self, _user_state: &mut NodeGraphState) -> ecolor::Color32 {
+    fn data_type_color(&self, _user_state: &NodeGraphState) -> ecolor::Color32 {
         match self {
             GraphDataType::RGB => ecolor::Color32::from_rgb(229, 70, 61),
             GraphDataType::Alpha => ecolor::Color32::from_rgb(35, 114, 239),
@@ -48,29 +48,29 @@ impl NodeTemplateTrait for NodeType {
     type UserState = NodeGraphState;
     type CategoryType = &'static str;
 
-    fn node_finder_label(&self, _user_state: &mut Self::UserState) -> Cow<'_, str> {
+    fn node_finder_label(&self, _user_state: &Self::UserState) -> Cow<'_, str> {
         self.name()
     }
 
     // this is what allows the library to show collapsible lists in the node finder.
-    fn node_finder_categories(&self, _user_state: &mut Self::UserState) -> Vec<&'static str> {
+    fn node_finder_categories(&self, _user_state: &Self::UserState) -> Vec<&'static str> {
         vec![self.category_name()]
     }
 
-    fn node_graph_label(&self, user_state: &mut Self::UserState) -> String {
+    fn node_graph_label(&self, user_state: &Self::UserState) -> String {
         // It's okay to delegate this to node_finder_label if you don't want to
         // show different names in the node finder and the node itself.
         self.node_finder_label(user_state).into()
     }
 
-    fn node_data(&self, _user_state: &mut Self::UserState) -> Self::NodeData {
+    fn node_data(&self, _user_state: &Self::UserState) -> Self::NodeData {
         GraphNodeData::new(*self)
     }
 
     fn build_node(
         &self,
         graph: &mut Graph<Self::NodeData, Self::DataType, Self::ValueType>,
-        _user_state: &mut Self::UserState,
+        _user_state: &Self::UserState,
         node_id: NodeId,
     ) {
         // The nodes are created empty by default. This function needs to take
@@ -155,7 +155,7 @@ impl WidgetValueTrait for GraphValueType {
         param_name: &str,
         _node_id: NodeId,
         ui: &mut egui::Ui,
-        _user_state: &mut NodeGraphState,
+        _user_state: &NodeGraphState,
         _node_data: &GraphNodeData,
     ) -> Vec<MyResponse> {
         // This trait is used to tell the library which UI to display for the

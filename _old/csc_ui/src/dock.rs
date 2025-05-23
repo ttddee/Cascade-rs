@@ -1,6 +1,6 @@
 use std::{collections::HashSet, sync::Arc};
 
-use csc_core::{node_data::AllNodeTemplates, node_graph::NodeGraph};
+use csc_core::node_data::AllNodeTemplates;
 use egui::{load::SizedTexture, CentralPanel, Frame, ImageSource, TextureId, Ui, WidgetText};
 use egui_dock::{AllowedSplits, DockArea, DockState, NodeIndex, Style, SurfaceIndex, TabViewer};
 use egui_winit_vulkano::Gui;
@@ -8,12 +8,12 @@ use vulkano::image::view::ImageView;
 
 use crate::properties_panel::PropertiesPanel;
 
-pub struct MainDock<'a> {
-    context: DockContext<'a>,
+pub struct MainDock {
+    context: DockContext,
     tree: DockState<String>,
 }
 
-impl<'a> MainDock<'a> {
+impl MainDock {
     pub fn show(&mut self, context: egui::Context) {
         CentralPanel::default()
             .frame(Frame::central_panel(&context.style()).inner_margin(0.))
@@ -36,12 +36,7 @@ impl<'a> MainDock<'a> {
                     .show_inside(ui, &mut self.context);
             });
     }
-    pub fn new(
-        gui: &Gui,
-        node_graph: &'a mut NodeGraph,
-        scene_view_size: [u32; 2],
-        scene_texture_id: TextureId,
-    ) -> Self {
+    pub fn new(gui: &Gui, scene_view_size: [u32; 2], scene_texture_id: TextureId) -> Self {
         let mut dock_state = DockState::new(vec!["Viewer".to_owned()]);
 
         let [a, _] = dock_state.main_surface_mut().split_below(
@@ -78,7 +73,6 @@ impl<'a> MainDock<'a> {
             scene_texture_id: scene_texture_id,
             scene_view_size,
             egui_context: gui.context(),
-            node_graph: node_graph,
             properties_panel: PropertiesPanel::default(),
         };
 
@@ -89,7 +83,7 @@ impl<'a> MainDock<'a> {
     }
 }
 
-struct DockContext<'a> {
+struct DockContext {
     pub style: Option<Style>,
     open_tabs: HashSet<String>,
 
@@ -103,7 +97,6 @@ struct DockContext<'a> {
     scene_texture_id: egui::TextureId,
     scene_view_size: [u32; 2],
     egui_context: egui::Context,
-    node_graph: &'a mut NodeGraph,
     properties_panel: PropertiesPanel,
 }
 

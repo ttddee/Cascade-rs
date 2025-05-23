@@ -3,9 +3,7 @@
 resolver = "2"
 
 members = [
-    "csc_engine",
-    "csc_ui",
-    "csc_core",
+    "cas_graph",
 ]
 
 [package]
@@ -14,28 +12,19 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-csc_ui = { path = "csc_ui" }
-csc_engine = { path = "csc_engine" }
-csc_core = { path = "csc_core" }
-ahash = "0.8.3"
-anyhow = { workspace = true }
-egui_winit_vulkano = { workspace = true }
-egui_node_graph = { workspace = true }
-vulkano = { workspace = true }
-vulkano-util = { workspace = true }
+cas_graph = { path = "cas_graph" }
+
+egui = { workspace = true }
+egui-wgpu = { workspace = true }
+egui-winit = { workspace = true }
 winit = { workspace = true }
+pollster = { workspace = true }
+petgraph = { workspace = true }
 
 [workspace.dependencies]
-egui = "0.28.1"
-ecolor = "0.28.1"
-egui-winit = "0.28.1"
-winit = "0.29"
-egui_winit_vulkano = { path = "../egui_winit_vulkano"}
-vulkano = {version = "0.34", git = "https://github.com/vulkano-rs/vulkano.git", rev="5b466bf14323383b78745c3fadc336f103304261"}
-vulkano-util = {version = "0.34", git = "https://github.com/vulkano-rs/vulkano.git", rev="5b466bf14323383b78745c3fadc336f103304261"}
-vulkano-shaders = "0.34"
-egui_node_graph = { path = "../egui_node_graph/egui_node_graph"}
-egui_file = "0.18.0"
-egui_dock = { git="https://github.com/Adanos020/egui_dock", rev="e33130ce4e25431741f213f9fb081dcb0108aa66" }
-anyhow = "1.0"
-cgmath = "0.18.0"
+egui = "0.31.1"
+egui-wgpu = { version = "0.31.1",features = ["winit"] }
+egui-winit = "0.31.1"
+winit = "0.30.9"
+pollster = "0.4.0"
+petgraph = "0.8.1"
