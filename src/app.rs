@@ -1,8 +1,7 @@
 use crate::egui_tools::EguiRenderer;
-use cas_graph::graph_ui::GraphUI;
-use cas_graph::snarl_graph::{DemoNode, DemoViewer};
+use cas_graph::node_graph::{DemoNode, DemoViewer};
 use egui::Id;
-use egui_snarl::ui::{SnarlStyle, SnarlWidget};
+use egui_snarl::ui::{NodeLayout, PinPlacement, SnarlStyle, SnarlWidget};
 use egui_snarl::Snarl;
 use egui_wgpu::wgpu::SurfaceError;
 use egui_wgpu::{wgpu, ScreenDescriptor};
@@ -20,7 +19,7 @@ pub struct AppState {
     pub surface: wgpu::Surface<'static>,
     pub scale_factor: f32,
     pub egui_renderer: EguiRenderer,
-    pub scene_rect: egui::Rect,
+    pub snarl_style: SnarlStyle,
 }
 
 impl AppState {
@@ -80,7 +79,33 @@ impl AppState {
 
         let scale_factor = 1.0;
 
-        let scene_rect = egui::Rect::NOTHING;
+        let snarl_style = SnarlStyle {
+            node_layout: Some(NodeLayout::FlippedSandwich),
+            pin_placement: Some(PinPlacement::Edge),
+            pin_size: Some(7.0),
+            node_frame: Some(egui::Frame {
+                inner_margin: egui::Margin::same(8),
+                outer_margin: egui::Margin {
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    bottom: 4,
+                },
+                corner_radius: egui::CornerRadius::same(8),
+                fill: egui::Color32::from_gray(30),
+                stroke: egui::Stroke::NONE,
+                shadow: egui::Shadow::NONE,
+            }),
+            bg_frame: Some(egui::Frame {
+                inner_margin: egui::Margin::ZERO,
+                outer_margin: egui::Margin::same(2),
+                corner_radius: egui::CornerRadius::ZERO,
+                fill: egui::Color32::from_gray(40),
+                stroke: egui::Stroke::NONE,
+                shadow: egui::Shadow::NONE,
+            }),
+            ..SnarlStyle::new()
+        };
 
         Self {
             device,
@@ -89,7 +114,7 @@ impl AppState {
             surface_config,
             egui_renderer,
             scale_factor,
-            scene_rect,
+            snarl_style,
         }
     }
 
@@ -200,44 +225,7 @@ impl App {
 
             // ---------------------------------------------------------
 
-            // let mut graph = NodeGraph::new();
-
-            // graph.add_node(egui::pos2(100., 100.));
-            // graph.add_node(egui::pos2(300., 120.));
-
-            // egui::Area::new(egui::Id::new("graph_area"))
-            //     .default_size(egui::vec2(1200., 1200.))
-            //     .show(state.egui_renderer.context(), |ui| {
-            //         egui::containers::Scene::new().show(ui, &mut state.scene_rect, |ui| {
-            //             // Draw something inside the scene
-            //             ui.label("Hello, egui Scene!");
-            //             let graph_ui = GraphUI {};
-            //             graph_ui.draw_graph(ui, &graph);
-            //         });
-            //     });
-
-            // ---------------------------------------------------------
-
             egui_extras::install_image_loaders(&state.egui_renderer.context());
-
-            // cx.style_mut(|style| style.animation_time *= 10.0);
-
-            // let snarl = cx.storage.map_or_else(Snarl::new, |storage| {
-            //     storage
-            //         .get_string("snarl")
-            //         .and_then(|snarl| serde_json::from_str(&snarl).ok())
-            //         .unwrap_or_default()
-            // });
-            // // let snarl = Snarl::new();
-
-            // let style = cx.storage.map_or_else(default_style, |storage| {
-            //     storage
-            //         .get_string("style")
-            //         .and_then(|style| serde_json::from_str(&style).ok())
-            //         .unwrap_or_else(default_style)
-            // });
-
-            //let mut snarl = Snarl::new();
 
             egui::TopBottomPanel::top("top_panel").show(state.egui_renderer.context(), |ui| {
                 // The top panel is often a good place for a menu bar:
@@ -261,48 +249,10 @@ impl App {
                 });
             });
 
-            egui::SidePanel::left("style").show(state.egui_renderer.context(), |ui| {
-                egui::ScrollArea::vertical().show(ui, |ui| {
-                    //egui_probe::Probe::new(&mut self.style).show(ui);
-                });
-            });
-
-            // egui::SidePanel::right("selected-list").show(ctx, |ui| {
-            //     egui::ScrollArea::vertical().show(ui, |ui| {
-            //         ui.strong("Selected nodes");
-
-            //         let selected = get_selected_nodes(Id::new("snarl-demo"), ui.ctx());
-
-            //         let mut selected = selected
-            //             .into_iter()
-            //             .map(|id| (id, &self.snarl[id]))
-            //             .collect::<Vec<_>>();
-
-            //         selected.sort_by_key(|(id, _)| *id);
-
-            //         let mut remove = None;
-
-            //         for (id, node) in selected {
-            //             ui.horizontal(|ui| {
-            //                 ui.label(format!("{id:?}"));
-            //                 ui.label(node.name());
-            //                 ui.add_space(ui.spacing().item_spacing.x);
-            //                 if ui.button("Remove").clicked() {
-            //                     remove = Some(id);
-            //                 }
-            //             });
-            //         }
-
-            //         if let Some(id) = remove {
-            //             self.snarl.remove_node(id);
-            //         }
-            //     });
-            // });
-
             egui::CentralPanel::default().show(state.egui_renderer.context(), |ui| {
                 SnarlWidget::new()
-                    .id(Id::new("snarl-demo"))
-                    //.style(self.style)
+                    .id(Id::new("snarl-graph"))
+                    .style(state.snarl_style)
                     .show(&mut self.snarl, &mut DemoViewer, ui);
             });
 
