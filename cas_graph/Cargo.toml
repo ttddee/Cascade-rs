@@ -5,4 +5,8 @@ edition = "2021"
 
 [dependencies]
 egui = { workspace = true }
+egui-snarl = { workspace = true }
 petgraph = { workspace = true }
+egui-probe = { workspace = true, features = ["derive"], optional = true }
+syn = { workspace = true }
+egui_extras = { workspace = true }

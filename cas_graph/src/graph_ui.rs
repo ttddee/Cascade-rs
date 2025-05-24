@@ -23,6 +23,7 @@ impl GraphUI {
             dbg!("Click started");
         } else if response.drag_started() {
             dbg!("Drag started");
+            dbg!(response.drag_delta());
         } else if response.drag_stopped() {
             dbg!("Drag stopped");
         }

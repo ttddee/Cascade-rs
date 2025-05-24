@@ -1,6 +1,6 @@
 [workspace]
 
-resolver = "2"
+resolver = "3"
 
 members = [
     "cas_graph",
@@ -11,20 +11,28 @@ name = "cascade"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies]
-cas_graph = { path = "cas_graph" }
-
-egui = { workspace = true }
-egui-wgpu = { workspace = true }
-egui-winit = { workspace = true }
-winit = { workspace = true }
-pollster = { workspace = true }
-petgraph = { workspace = true }
-
 [workspace.dependencies]
 egui = "0.31.1"
 egui-wgpu = { version = "0.31.1",features = ["winit"] }
 egui-winit = "0.31.1"
 winit = "0.30.9"
+egui-snarl = {version = "0.8.0", git = "https://github.com/zakarumych/egui-snarl.git", rev="449295aad135b9605a81c17dda42b0196b2093ca"}
 pollster = "0.4.0"
 petgraph = "0.8.1"
+egui-probe = { version = "0.8.0", git = "https://github.com/zakarumych/egui-probe" }
+syn = { version = "2.0", features = ["extra-traits"] }
+egui_extras = { version = "0.31.0", features = ["all_loaders"] }
+
+[dependencies]
+cas_graph = { path = "cas_graph" }
+egui = { workspace = true }
+egui-wgpu = { workspace = true }
+egui-winit = { workspace = true }
+winit = { workspace = true }
+egui-snarl = { workspace = true }
+pollster = { workspace = true }
+petgraph = { workspace = true }
+egui-probe = { workspace = true }
+syn = { workspace = true }
+egui_extras = { workspace = true }
+
